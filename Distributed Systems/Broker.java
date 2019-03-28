@@ -1,3 +1,4 @@
+import java.util.List;
 public class Broker{
 
     List<Subscriber> registeredSubscribers;
@@ -9,8 +10,8 @@ public class Broker{
     }
 
     public void calculateKeys(){}
-    public Publisher acceptConnection(Publisher p){}
-    public Subscriber acceptConnection(Subscriber s){}
+    public Publisher acceptConnection(Publisher p){return p;}
+    public Subscriber acceptConnection(Subscriber s){return s;}
     public void notifyPublisher(String message){}
     public void pull(Topic t){}
 }
