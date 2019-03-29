@@ -1,3 +1,4 @@
+import java.net.Socket;
 import java.util.List;
 
 public class Node {
@@ -9,7 +10,9 @@ public class Node {
     }
 
 
-    public void init(int value){}
+    public void init(int value){
+        Socket socket = new Socket(value);
+    }
     public void connect(){}
     public void disconnect(){}
     public void updateNodes(){}
