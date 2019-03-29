@@ -8,8 +8,6 @@ import java.util.List;
 public class Node {
 
     List<Broker> brokers;
-    ServerSocket server;
-    Socket connectionSocket;
 
     public Node(List<Broker> list) {
         this.brokers = list;
@@ -17,21 +15,25 @@ public class Node {
 
 
     public void init(int port) {
-        try {
-            server = new ServerSocket(port); //initialising server
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+/*
+try {
+server = new ServerSocket(port); //initialising server
+} catch (IOException e) {
+e.printStackTrace();
+}
+*/
     }
 
     public void connect() {
-        while(true){
-            try {
-                connectionSocket = server.accept(); //accepting connection
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+/*
+while(true){
+try {
+connectionSocket = server.accept(); //accepting connection
+} catch (IOException e) {
+e.printStackTrace();
+}
+}
+*/
     }
 
     public void disconnect() {
