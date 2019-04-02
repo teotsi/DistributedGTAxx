@@ -1,10 +1,17 @@
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.List;
 
 public class Broker implements Node {
 
     List<Subscriber> registeredSubscribers;
     List<Publisher> registeredPublishers;
-
+    ServerSocket server;
+    Socket connectionSocket;
+    ObjectOutputStream out;
+    ObjectInputStream in;
     public Broker(List<Subscriber> subs, List<Publisher> pubs, List<Broker> brokers) {
         this.brokers.addAll(brokers);
         this.registeredSubscribers = subs;

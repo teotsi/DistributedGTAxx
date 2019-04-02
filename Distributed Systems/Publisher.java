@@ -1,57 +1,51 @@
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.ServerSocket;
+import java.net.InetAddress;
 import java.net.Socket;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
-import java.security.MessageDigest;
 
-public class Publisher implements Node {
-    ServerSocket server;
+public class Publisher implements Node, Runnable {
     Socket connectionSocket;
     ObjectOutputStream out;
     ObjectInputStream in;
-    int[] array = {81, 52, 34, 42, 54, 67, 57, 18, 29};
+    int busCode;
+    int port;
+
     public Publisher(List<Broker> brokers) {
         this.brokers.addAll(brokers);
     }
 
     @Override
-    public void init(int port){
+    public void init(int port) {
+        this.busCode = Reader.getBus();
         try {
-            server = new ServerSocket(4321); //initialising server
+            connectionSocket = new Socket(InetAddress.getByName("127.0.0.1"), port); //initialising client
         } catch (IOException e) {
             e.printStackTrace();
         }
-        connect();
     }
 
     @Override
-    public void connect(){
-        while(true){
-            try {
-                connectionSocket = server.accept();
-
+    public void connect() {
+        try {
             out = new ObjectOutputStream(connectionSocket.getOutputStream());
             in = new ObjectInputStream(connectionSocket.getInputStream());
-            int request = Integer.parseInt( (String) in.readObject());
-            int response = array[request];
-            push(new Topic((String.valueOf(response))),null);
-            connectionSocket.close();
-            server.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (ClassNotFoundException e){
-                e.printStackTrace();
-            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
     @Override
     public void disconnect() {
-
+        try {
+            connectionSocket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -79,5 +73,11 @@ public class Publisher implements Node {
     }
 
     public void notifyFailure(Broker b) {
+    }
+
+    @Override
+    public void run() {
+        init(1111);
+
     }
 }
