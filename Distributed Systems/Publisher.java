@@ -8,15 +8,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.security.MessageDigest;
 
-public class Publisher extends Node {
+public class Publisher implements Node {
     ServerSocket server;
     Socket connectionSocket;
     ObjectOutputStream out;
     ObjectInputStream in;
     int[] array = {81, 52, 34, 42, 54, 67, 57, 18, 29};
     public Publisher(List<Broker> brokers) {
-        super(brokers);
-
+        this.brokers.addAll(brokers);
     }
 
     @Override
@@ -48,6 +47,16 @@ public class Publisher extends Node {
                 e.printStackTrace();
             }
         }
+    }
+
+    @Override
+    public void disconnect() {
+
+    }
+
+    @Override
+    public void updateNodes() {
+
     }
 
     public void getBrokerList() {
