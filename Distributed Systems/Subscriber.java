@@ -7,12 +7,12 @@ import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Scanner;
 
-public class Subscriber extends Node {
+public class Subscriber implements Node {
     Socket socket;
     ObjectOutputStream out;
     ObjectInputStream in;
     public Subscriber( List<Broker> brokers) {
-        super(brokers);
+        this.brokers.addAll(brokers);
     }
 
     public void register(Broker b, Topic t){}
@@ -29,5 +29,25 @@ public class Subscriber extends Node {
         String response = (String) in.readObject();
         System.out.println("From Sub: item "+i+" is "+ response);
         socket.close();
+    }
+
+    @Override
+    public void init(int port) {
+
+    }
+
+    @Override
+    public void connect() {
+
+    }
+
+    @Override
+    public void disconnect() {
+
+    }
+
+    @Override
+    public void updateNodes() {
+
     }
 }

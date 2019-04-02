@@ -36,8 +36,5 @@ public class Reader {
         System.out.println(Reader.getBus());
         Reader.getBus();
         System.out.println(Reader.getBus());
-        List<Broker> s = new ArrayList<Broker>();
-        s.add()
-        new Publisher()
     }
 }
