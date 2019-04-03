@@ -22,6 +22,7 @@ public class Broker implements Node {
     }
 
     public void calculateKeys() {
+        System.out.println("Edw");
     }
 
     public Publisher acceptConnection(Publisher p) {
