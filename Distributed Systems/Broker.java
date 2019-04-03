@@ -10,8 +10,8 @@ public class Broker implements Node {
 
     List<Subscriber> registeredSubscribers;
     List<Publisher> registeredPublishers;
-    ServerSocket server;
-    Socket connectionSocket;
+    ServerSocket providerSocket;
+    Socket connection;
     ObjectOutputStream out;
     ObjectInputStream in;
 
@@ -22,7 +22,7 @@ public class Broker implements Node {
     }
 
     public void calculateKeys() {
-        System.out.println("Edw");
+        
     }
 
     public Publisher acceptConnection(Publisher p) {
