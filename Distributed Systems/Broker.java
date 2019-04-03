@@ -4,6 +4,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.List;
 
+import com.sun.net.ssl.internal.ssl.Provider;
+
 public class Broker implements Node {
 
     List<Subscriber> registeredSubscribers;
@@ -12,6 +14,7 @@ public class Broker implements Node {
     Socket connectionSocket;
     ObjectOutputStream out;
     ObjectInputStream in;
+
     public Broker(List<Subscriber> subs, List<Publisher> pubs, List<Broker> brokers) {
         this.brokers.addAll(brokers);
         this.registeredSubscribers = subs;
@@ -37,17 +40,23 @@ public class Broker implements Node {
 
     @Override
     public void init(int port) {
-
+        providerSocket = new ServerSocket(port);
     }
 
     @Override
     public void connect() {
-
+        connection = providerSocket.accept();
+        out = new ObjectOutputStream(connection.getOutputStream());
+        in = new ObjectInputStream(connection.getInputStream());
     }
 
     @Override
     public void disconnect() {
-
+        in.close();
+        out.close();
+        connection.close();
+        providerSocket.close();
+        
     }
 
     @Override
