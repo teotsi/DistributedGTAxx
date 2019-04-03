@@ -38,6 +38,15 @@ public class Broker implements Node {
     }
 
     public void pull(Topic t) {
+        try {
+            Topic t2 = (Topic) in.readObject();
+            System.out.println("read");
+            System.out.println(t2.getBusLine());
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

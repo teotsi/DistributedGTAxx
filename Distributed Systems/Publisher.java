@@ -67,9 +67,14 @@ public class Publisher implements Node, Runnable {
         return new Broker(new ArrayList<Subscriber>(), new ArrayList<Publisher>(), null);
     }
 
-    public void push(Topic t, Value v) throws IOException {
-        out.writeObject(t.getBusLine());
-        out.flush();
+    public void push(Topic t, Value v)  {
+        try {
+            out.writeObject(t);
+            out.flush();
+            System.out.println("pushed");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void notifyFailure(Broker b) {

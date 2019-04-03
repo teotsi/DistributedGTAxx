@@ -5,5 +5,6 @@ public class BroThreads {
         Broker BroThread = new Broker(null, null, new ArrayList<Broker>());
         BroThread.init(4321);
         BroThread.connect();
+        BroThread.pull(null);
     }
 }
