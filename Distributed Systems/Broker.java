@@ -1,3 +1,4 @@
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
@@ -41,23 +42,35 @@ public class Broker implements Node {
 
     @Override
     public void init(int port) {
-        providerSocket = new ServerSocket(port);
+        try {
+            providerSocket = new ServerSocket(port);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void connect() {
-        connection = providerSocket.accept();
-        out = new ObjectOutputStream(connection.getOutputStream());
-        in = new ObjectInputStream(connection.getInputStream());
+        try {
+            connection = providerSocket.accept();
+            out = new ObjectOutputStream(connection.getOutputStream());
+            in = new ObjectInputStream(connection.getInputStream());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
     @Override
     public void disconnect() {
-        in.close();
-        out.close();
-        connection.close();
-        providerSocket.close();
-        
+        try {
+            in.close();
+            out.close();
+            connection.close();
+            providerSocket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
