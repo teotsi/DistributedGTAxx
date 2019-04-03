@@ -6,6 +6,6 @@ public class PubThreads {
         Publisher PubThread = new Publisher(new ArrayList<Broker>());
         PubThread.init(4321);
         PubThread.connect();
-        PubThread.push(new Topic(Integer.toString(PubThread.busCode)), null);
+        PubThread.push(new Topic(PubThread.busCode), null);
     }
 }

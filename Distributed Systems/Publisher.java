@@ -12,7 +12,7 @@ public class Publisher implements Node, Runnable {
     Socket connectionSocket;
     ObjectOutputStream out;
     ObjectInputStream in;
-    int busCode;
+    String busCode;
     int port;
 
     public Publisher(List<Broker> brokers) {
@@ -64,7 +64,7 @@ public class Publisher implements Node, Runnable {
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
-        return new Broker(new ArrayList<Subscriber>(), new ArrayList<Publisher>(), null);
+        return new Broker(null);
     }
 
     public void push(Topic t, Value v)  {

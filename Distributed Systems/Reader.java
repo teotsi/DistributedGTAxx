@@ -13,7 +13,7 @@ public class Reader {
 
     public Reader(String fileName){
         this.fileName = fileName;
-        Scanner input = null;
+        Scanner input;
         File f;
         try {
             f = new File(fileName);
@@ -27,9 +27,10 @@ public class Reader {
             lines.add(input.nextLine());
         }
     }
-    public static int getBus(){
+    public static String getBus(){
         StringTokenizer st = new StringTokenizer(lines.get(i++), ",");
-        return Integer.parseInt(st.nextToken());
+        st.nextToken();
+        return st.nextToken();
     }
     public static void main(String[] args) {
         new Reader("..\\dataset\\busLinesNew.txt");

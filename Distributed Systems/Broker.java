@@ -3,6 +3,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -16,10 +17,11 @@ public class Broker implements Node {
     ObjectOutputStream out;
     ObjectInputStream in;
 
-    public Broker(List<Subscriber> subs, List<Publisher> pubs, List<Broker> brokers) {
+    public Broker(List<Broker> brokers) {
         this.brokers.addAll(brokers);
-        this.registeredSubscribers = subs;
-        this.registeredPublishers = pubs;
+        this.registeredSubscribers = new ArrayList<Subscriber>();
+        this.registeredPublishers = new ArrayList<Publisher>();
+        this.brokers.add(this);
     }
 
     public void calculateKeys() {
@@ -27,6 +29,8 @@ public class Broker implements Node {
     }
 
     public Publisher acceptConnection(Publisher p) {
+        this.registeredPublishers.add(p);
+        connect();
         return p;
     }
 
