@@ -7,6 +7,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class Publisher implements Node, Runnable {
     Socket connectionSocket;
@@ -82,7 +83,12 @@ public class Publisher implements Node, Runnable {
 
     @Override
     public void run() {
-        init(1111);
+        synchronized (this){
+            init(brokers.get(new Random().nextInt(brokers.size())).providerSocket.getLocalPort());
+        }
+
+        connect();
+        push(new Topic(busCode),null);
 
     }
 }

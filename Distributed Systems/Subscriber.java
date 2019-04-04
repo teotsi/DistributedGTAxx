@@ -21,11 +21,6 @@ public class Subscriber implements Node {
     public void disconnect(Broker b, Topic t){}
     public void visualiseData(Topic t, Value v) throws IOException, ClassNotFoundException {
 
-        out.writeObject(i);
-        out.flush();
-        String response = (String) in.readObject();
-        System.out.println("From Sub: item "+i+" is "+ response);
-        socket.close();
     }
 
     @Override

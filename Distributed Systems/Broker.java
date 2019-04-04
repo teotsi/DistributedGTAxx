@@ -6,9 +6,10 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.lang.Thread.sleep;
 
 
-public class Broker implements Node {
+public class Broker implements Node, Runnable {
 
     List<Subscriber> registeredSubscribers;
     List<Publisher> registeredPublishers;
@@ -16,6 +17,7 @@ public class Broker implements Node {
     Socket connection;
     ObjectOutputStream out;
     ObjectInputStream in;
+    private static int c=4321;
 
     public Broker(List<Broker> brokers) {
         this.brokers.addAll(brokers);
@@ -89,5 +91,13 @@ public class Broker implements Node {
     @Override
     public void updateNodes() {
 
+    }
+
+    public void run(){
+        init(c++);
+        while(true) {
+            connect();
+            pull(null);
+        }
     }
 }
