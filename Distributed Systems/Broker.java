@@ -25,7 +25,7 @@ public class Broker implements Node {
     }
 
     public void calculateKeys() {
-        
+
     }
 
     public Publisher acceptConnection(Publisher p) {

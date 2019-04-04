@@ -24,7 +24,7 @@ public class Bus{
     }
     public String getRouteCode() {
         return routeCode;
-    }    
+    }
     public String getVehicleId() {
         return vehicleId;
     }
