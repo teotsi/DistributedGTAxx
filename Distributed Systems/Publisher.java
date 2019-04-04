@@ -76,7 +76,7 @@ public class Publisher implements Node, Runnable, Serializable {
             out.flush();
             out.writeObject(new Publisher(this.brokers));
             out.flush();
-            System.out.println("Publisher no"+Thread.currentThread().getId()+"pushed");
+            System.out.println("Publisher no"+Thread.currentThread().getId()+" pushed");
         } catch (IOException e) {
             e.printStackTrace();
         }

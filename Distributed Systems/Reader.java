@@ -29,7 +29,7 @@ public class Reader {
         totalLines = lines.size();
     }
 
-    public static String getBus() {
+    public static synchronized String getBus() {
         StringTokenizer st = new StringTokenizer(lines.get(i++), ",");
 
 //        System.out.println("after i++");

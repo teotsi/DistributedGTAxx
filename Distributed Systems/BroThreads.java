@@ -17,6 +17,11 @@ public class BroThreads {
         }
         for (int i = 0; i < 5; i++) {
             ThreadPool.execute(brokerList.get(i));
+            try {
+                sleep(250);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
 
         new Reader("..\\dataset\\busLinesNew.txt");

@@ -9,13 +9,13 @@ import java.util.List;
 
 public class Broker implements Node, Runnable {
 
+    private static int c = 4321;
     List<Subscriber> registeredSubscribers;
     List<Publisher> registeredPublishers;
     ServerSocket providerSocket;
     Socket connection;
     ObjectOutputStream out;
     ObjectInputStream in;
-    private static int c=4321;
 
     public Broker(List<Broker> brokers) {
         this.brokers.addAll(brokers);
@@ -42,7 +42,7 @@ public class Broker implements Node, Runnable {
     public void pull(Topic t) {
         try {
             Topic t2 = (Topic) in.readObject();
-            System.out.println("Broker no"+Thread.currentThread().getId()+"read");
+            System.out.println("Broker no" + Thread.currentThread().getId() + "read");
 
             System.out.println(t2.getBusLine());
             this.registeredPublishers.add((Publisher) in.readObject());
@@ -91,9 +91,9 @@ public class Broker implements Node, Runnable {
 
     }
 
-    public void run(){
+    public void run() {
         init(c++);
-        while(true) {
+        while (true) {
             connect();
 
             pull(null);
