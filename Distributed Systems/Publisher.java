@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.security.MessageDigest;
@@ -9,12 +10,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public class Publisher implements Node, Runnable {
+public class Publisher implements Node, Runnable, Serializable {
     Socket connectionSocket;
     ObjectOutputStream out;
     ObjectInputStream in;
     String busCode;
-    int port;
+
 
     public Publisher(List<Broker> brokers) {
         this.brokers.addAll(brokers);
@@ -72,11 +73,15 @@ public class Publisher implements Node, Runnable {
         try {
             out.writeObject(t);
             out.flush();
+            Publisher p = this;
+            out.writeObject(p);
+            out.flush();
             System.out.println("pushed");
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
 
     public void notifyFailure(Broker b) {
     }

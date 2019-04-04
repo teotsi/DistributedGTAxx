@@ -31,8 +31,6 @@ public class Broker implements Node, Runnable {
     }
 
     public Publisher acceptConnection(Publisher p) {
-        this.registeredPublishers.add(p);
-        connect();
         return p;
     }
 
@@ -48,6 +46,7 @@ public class Broker implements Node, Runnable {
             Topic t2 = (Topic) in.readObject();
             System.out.println("read");
             System.out.println(t2.getBusLine());
+            this.registeredPublishers.add((Publisher) in.readObject());
         } catch (IOException e) {
             e.printStackTrace();
         } catch (ClassNotFoundException e) {
@@ -97,6 +96,7 @@ public class Broker implements Node, Runnable {
         init(c++);
         while(true) {
             connect();
+
             pull(null);
         }
     }
