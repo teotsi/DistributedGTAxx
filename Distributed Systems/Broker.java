@@ -6,8 +6,6 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.lang.Thread.sleep;
-
 
 public class Broker implements Node, Runnable {
 
@@ -44,7 +42,8 @@ public class Broker implements Node, Runnable {
     public void pull(Topic t) {
         try {
             Topic t2 = (Topic) in.readObject();
-            System.out.println("read");
+            System.out.println("Broker no"+Thread.currentThread().getId()+"read");
+
             System.out.println(t2.getBusLine());
             this.registeredPublishers.add((Publisher) in.readObject());
         } catch (IOException e) {

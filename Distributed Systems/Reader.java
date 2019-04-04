@@ -1,20 +1,17 @@
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 import java.util.StringTokenizer;
 
-import static java.lang.Thread.sleep;
-
 public class Reader {
-    private String fileName;
     private static List<String> lines;
     private static int i = 0;
     private static int totalLines;
+    private String fileName;
 
-    public Reader(String fileName){
+    public Reader(String fileName) {
         this.fileName = fileName;
         Scanner input;
         File f;
@@ -26,26 +23,23 @@ public class Reader {
             return;
         }
         lines = new ArrayList<String>();
-        while(input.hasNext()){
+        while (input.hasNext()) {
             lines.add(input.nextLine());
         }
-        totalLines=lines.size();
+        totalLines = lines.size();
     }
-    public static String getBus(){
+
+    public static String getBus() {
         StringTokenizer st = new StringTokenizer(lines.get(i++), ",");
 
-        System.out.println("after i++");
+//        System.out.println("after i++");
         st.nextToken();
         return st.nextToken();
     }
 
-    public static boolean moreBuses(){
-        System.out.println(i);
-        if(i>=totalLines){
-            return false;
-        }else{
-            return true;
-        }
+    public static boolean moreBuses() {
+//        System.out.println(i);
+        return i < totalLines;
     }
 
     public static void main(String[] args) {

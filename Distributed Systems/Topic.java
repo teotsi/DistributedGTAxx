@@ -4,7 +4,7 @@ public class Topic implements Serializable {
 
     private String busLine;
 
-    public Topic(String busLine){
+    public Topic(String busLine) {
         this.busLine = busLine;
     }
 

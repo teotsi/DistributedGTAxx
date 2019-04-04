@@ -6,9 +6,10 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+
+import static java.lang.Thread.sleep;
 
 public class Publisher implements Node, Runnable, Serializable {
     Socket connectionSocket;
@@ -69,14 +70,13 @@ public class Publisher implements Node, Runnable, Serializable {
         return new Broker(null);
     }
 
-    public void push(Topic t, Value v)  {
+    public void push(Topic t, Value v) {
         try {
             out.writeObject(t);
             out.flush();
-            Publisher p = this;
-            out.writeObject(p);
+            out.writeObject(new Publisher(this.brokers));
             out.flush();
-            System.out.println("pushed");
+            System.out.println("Publisher no"+Thread.currentThread().getId()+"pushed");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -88,12 +88,16 @@ public class Publisher implements Node, Runnable, Serializable {
 
     @Override
     public void run() {
-        synchronized (this){
             init(brokers.get(new Random().nextInt(brokers.size())).providerSocket.getLocalPort());
-        }
 
         connect();
-        push(new Topic(busCode),null);
-
+        push(new Topic(busCode), null);
+        while(true){
+            try {
+                sleep(50);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
