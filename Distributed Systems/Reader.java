@@ -102,7 +102,7 @@ public class Reader {
     }
 
     public static void main(String[] args) {
-        new Reader("..\\dataset\\busLinesNew.txt", "..\\dataset\\brokerIPs.txt", "..\\dataset\\busPositionsNew.txt", "..\\dataset\\RouteCodesNew.txt");
+        new Reader("../dataset/busLinesNew.txt", "../dataset/brokerIPs.txt", "../dataset/busPositionsNew.txt", "../dataset/RouteCodesNew.txt");
         createBusesMap();
         System.out.println(getNumberOfBuses(1151));
     }
