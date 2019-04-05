@@ -7,6 +7,7 @@ import static java.util.concurrent.Executors.newCachedThreadPool;
 
 public class BroThreads {
     public static void main(String[] args) {
+        new Reader("..\\dataset\\busLinesNew.txt", "..\\dataset\\brokerIPs.txt");
         List<Broker> brokerList = new ArrayList<Broker>();
         ExecutorService ThreadPool = newCachedThreadPool();
         for (int i = 0; i < 5; i++) {
@@ -23,16 +24,14 @@ public class BroThreads {
                 e.printStackTrace();
             }
         }
-
-        new Reader("..\\dataset\\busLinesNew.txt");
-        while (Reader.moreBuses()) {
-            ThreadPool.execute(new Publisher(brokerList));
-            try {
-                sleep(250);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            while (Reader.moreBuses()) {
+                ThreadPool.execute(new Publisher(brokerList));
+//                try {
+//                    sleep(250);
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
             }
-        }
 
     }
 }

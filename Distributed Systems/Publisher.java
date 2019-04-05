@@ -24,12 +24,14 @@ public class Publisher implements Node, Runnable, Serializable {
 
     @Override
     public void init(int port) {
-        this.busCode = Reader.getBus();
-        try {
-            connectionSocket = new Socket(InetAddress.getByName("127.0.0.1"), port); //initialising client
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+            System.out.println("sync starts");
+            this.busCode = Reader.getBus();
+            System.out.println("sync done");
+            try {
+                connectionSocket = new Socket(InetAddress.getByName("127.0.0.1"), port); //initialising client
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
     }
 
     @Override
@@ -74,9 +76,9 @@ public class Publisher implements Node, Runnable, Serializable {
         try {
             out.writeObject(t);
             out.flush();
-            out.writeObject(new Publisher(this.brokers));
-            out.flush();
-            System.out.println("Publisher no"+Thread.currentThread().getId()+" pushed");
+//            out.writeObject(new Publisher(this.brokers));
+//            out.flush();
+            System.out.println("Publisher no" + Thread.currentThread().getId() + " pushed");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -88,16 +90,16 @@ public class Publisher implements Node, Runnable, Serializable {
 
     @Override
     public void run() {
-            init(brokers.get(new Random().nextInt(brokers.size())).providerSocket.getLocalPort());
-
-        connect();
-        push(new Topic(busCode), null);
-        while(true){
-            try {
-                sleep(50);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
+        init(brokers.get(new Random().nextInt(brokers.size())).providerSocket.getLocalPort());
+           try {
+               sleep(50);
+               connect();
+               push(new Topic(busCode), null);
+               while (true) {
+                   sleep(50);
+               }
+           } catch (InterruptedException e) {
+               e.printStackTrace();
+           }
     }
 }

@@ -92,8 +92,10 @@ public class Broker implements Node, Runnable {
     }
 
     public void run() {
-        init(c++);
+        System.out.println("entered broker");
+            init(c++);
         while (true) {
+            System.out.println("brooo");
             connect();
 
             pull(null);
