@@ -7,7 +7,7 @@ import static java.util.concurrent.Executors.newCachedThreadPool;
 
 public class BroThreads {
     public static void main(String[] args) {
-        new Reader("..\\dataset\\busLinesNew.txt", "..\\dataset\\brokerIPs.txt");
+        new Reader("..\\dataset\\busLinesNew.txt", "..\\dataset\\brokerIPs.txt", "..\\dataset\\busPositionsNew.txt", "..\\dataset\\RoouteCodesNew.txt");
         List<Broker> brokerList = new ArrayList<Broker>();
         ExecutorService ThreadPool = newCachedThreadPool();
         for (int i = 0; i < 5; i++) {

@@ -15,7 +15,7 @@ public class Publisher implements Node, Runnable, Serializable {
     Socket connectionSocket;
     ObjectOutputStream out;
     ObjectInputStream in;
-    String busCode;
+    String busLine;
 
 
     public Publisher(List<Broker> brokers) {
@@ -25,7 +25,8 @@ public class Publisher implements Node, Runnable, Serializable {
     @Override
     public void init(int port) {
             System.out.println("sync starts");
-            this.busCode = Reader.getBus();
+            this.busLine = Reader.getBus();
+
             System.out.println("sync done");
             try {
                 connectionSocket = new Socket(InetAddress.getByName("127.0.0.1"), port); //initialising client
@@ -94,7 +95,8 @@ public class Publisher implements Node, Runnable, Serializable {
            try {
                sleep(50);
                connect();
-               push(new Topic(busCode), null);
+
+               push(new Topic(busLine), null);
                while (true) {
                    sleep(50);
                }
