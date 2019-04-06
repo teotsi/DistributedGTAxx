@@ -7,11 +7,11 @@ import static java.util.concurrent.Executors.newCachedThreadPool;
 
 public class BroThreads {
     public static void main(String[] args) {
-        new Reader("..\\dataset\\busLinesNew.txt", "..\\dataset\\brokerIPs.txt", "..\\dataset\\busPositionsNew.txt", "..\\dataset\\RoouteCodesNew.txt");
+        new Reader("..\\dataset\\busLinesNew.txt", "..\\dataset\\brokerIPs.txt", "..\\dataset\\busPositionsNew.txt", "..\\dataset\\RouteCodesNew.txt");
         List<Broker> brokerList = new ArrayList<Broker>();
         ExecutorService ThreadPool = newCachedThreadPool();
         for (int i = 0; i < 5; i++) {
-            brokerList.add(new Broker(new ArrayList<Broker>()));
+//            brokerList.add(new Broker(new ArrayList<Broker>()));
         }
         for (int i = 0; i < 5; i++) {
             brokerList.get(i).brokers.addAll(brokerList);

@@ -2,7 +2,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.net.InetAddress;
 import java.net.Socket;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -83,7 +82,7 @@ public class Publisher implements Node, Runnable, Serializable {
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
-        return new Broker(null);
+        return new Broker(null,null);
     }
 
     public void push(Topic t, Value v) {

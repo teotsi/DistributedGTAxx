@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -12,16 +13,18 @@ public class Broker implements Node, Runnable {
     private static int c = 4321;
     List<Subscriber> registeredSubscribers;
     List<Publisher> registeredPublishers;
+    InetAddress ipAddress;
     ServerSocket providerSocket;
     Socket connection;
     ObjectOutputStream out;
     ObjectInputStream in;
 
-    public Broker(List<Broker> brokers) {
+    public Broker(List<Broker> brokers, InetAddress ipAddress) {
         this.brokers.addAll(brokers);
         this.registeredSubscribers = new ArrayList<Subscriber>();
         this.registeredPublishers = new ArrayList<Publisher>();
         this.brokers.add(this);
+        this.ipAddress = ipAddress;
     }
 
     public void calculateKeys() {
@@ -57,6 +60,7 @@ public class Broker implements Node, Runnable {
     public void init(int port) {
         try {
             providerSocket = new ServerSocket(port);
+            this.ipAddress = providerSocket.getInetAddress();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -101,4 +105,5 @@ public class Broker implements Node, Runnable {
             pull(null);
         }
     }
+
 }
