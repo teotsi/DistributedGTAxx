@@ -13,6 +13,7 @@ public class Reader {
     private static int totalIpLines;
     private static Set<Map.Entry> LinesNbuses =new HashSet<>();
     private static Set<Map.Entry> BusesNroutes =new HashSet<>();
+    private static Set<Map.Entry> RoutesNinfo =new HashSet<>();
 
     public Reader(String busLinesfileName, String ipFileName, String busPositionsFileName, String RouteCodesFileName) {
         Scanner busInput, ipInput, positionInput, routeInput;
@@ -70,6 +71,27 @@ public class Reader {
 
     }
 
+    public static void createRoutesNinfo(){
+        for (int i = 0; i < routeLines.size(); i++) {
+            StringTokenizer st;
+            st = new StringTokenizer(routeLines.get(i), ",");
+            String code=st.nextToken();
+            st.nextToken();
+            st.nextToken();
+            String info=st.nextToken();
+            RoutesNinfo.add(new AbstractMap.SimpleEntry<>(code,info.trim()));
+        }
+    }
+
+    public static String getInfo(String RouteCode){
+        for(Map.Entry<String, String> e:RoutesNinfo){
+            if(e.getKey().equals(RouteCode)){
+                return e.getValue();
+            }
+        }
+        return "error";
+    }
+
     public static void createBusesMap(){
         for (int i = 0; i < positionLines.size(); i++) {
             StringTokenizer st;
@@ -92,16 +114,13 @@ public class Reader {
         return c;
     }
 
-    public static String[] getRouteCode(String LineCode, int count){
-        String[] Routes= new String[count];
-        int i=0;
+    public static String getRouteCode(String Vehicle){
         for(Map.Entry<String, String> e:BusesNroutes){
-            if(e.getKey().equals(LineCode)){
-                Routes[i]=e.getValue();
-                i++;
+            if(e.getKey().equals(Vehicle)){
+               return e.getValue();
             }
         }
-        return Routes;
+        return "errror";
     }
 
     public static boolean moreBuses() {
@@ -115,8 +134,7 @@ public class Reader {
 
     public static void main(String[] args) {
         new Reader("../dataset/busLinesNew.txt", "../dataset/brokerIPs.txt", "../dataset/busPositionsNew.txt", "../dataset/RouteCodesNew.txt");
-        createBusesMap();
-        System.out.println(getNumberOfBuses("1151"));
+        new Publisher(new ArrayList<>()).init(4321);
     }
 
 
