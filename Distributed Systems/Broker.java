@@ -1,10 +1,9 @@
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.net.*;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 
 
@@ -61,7 +60,21 @@ public class Broker implements Node, Runnable {
         try {
             providerSocket = new ServerSocket(port);
             this.ipAddress = providerSocket.getInetAddress();
-            System.out.println(this.ipAddress.getLocalHost().getHostAddress());
+            Enumeration<NetworkInterface> e = NetworkInterface.getNetworkInterfaces();
+            boolean flag = false;
+            while(e.hasMoreElements()){
+                NetworkInterface ni = e.nextElement();
+                Enumeration<InetAddress> IPs = ni.getInetAddresses();
+                while(IPs.hasMoreElements()){
+                    InetAddress currentIP = IPs.nextElement();
+                    if(!currentIP.isLoopbackAddress() && currentIP instanceof Inet4Address){
+                        System.out.println(currentIP.getHostAddress());
+                        flag = true;
+                        break;
+                    }
+                }
+                if(flag) break;
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
