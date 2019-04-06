@@ -6,6 +6,7 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -16,7 +17,11 @@ public class Publisher implements Node, Runnable, Serializable {
     ObjectOutputStream out;
     ObjectInputStream in;
     String busLine;
-
+    String[] busLineInfo;
+    int NumberOfBuses;
+    List<Bus> ListOfBuses=new ArrayList<Bus>();
+    String[] Vehicles;
+    String[] Routes;
 
     public Publisher(List<Broker> brokers) {
         this.brokers.addAll(brokers);
@@ -24,15 +29,23 @@ public class Publisher implements Node, Runnable, Serializable {
 
     @Override
     public void init(int port) {
-            System.out.println("sync starts");
-            this.busLine = Reader.getBus();
-
-            System.out.println("sync done");
-            try {
-                connectionSocket = new Socket(InetAddress.getByName("127.0.0.1"), port); //initialising client
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        System.out.println("sync starts");
+        this.busLineInfo=Reader.getBus();
+        this.busLine = this.busLineInfo[1];
+        Reader.createBusesMap();//na mpei sthn main
+        int numofbuses=Reader.getNumberOfBuses(busLineInfo[0]);
+        this.Vehicles=Reader.getVehicles(busLineInfo[0],numofbuses);
+        this.Routes=Reader.getRouteCode(busLineInfo[0],numofbuses);
+        this.NumberOfBuses=Vehicles.length;
+        for (int i = 0; i < NumberOfBuses ; i++) {
+            ListOfBuses.add(new Bus(busLineInfo[0],this.Routes[i],this.Vehicles[i],busLineInfo[2],busLineInfo[1],null));
+        }
+        System.out.println("sync done");
+        try {
+            connectionSocket = new Socket(InetAddress.getByName("127.0.0.1"), port); //initialising client
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

@@ -12,6 +12,7 @@ public class Reader {
     private static List<String> routeLines;
     private static int totalIpLines;
     private static Set<Map.Entry> LinesNbuses =new HashSet<>();
+    private static Set<Map.Entry> BusesNroutes =new HashSet<>();
 
     public Reader(String busLinesfileName, String ipFileName, String busPositionsFileName, String RouteCodesFileName) {
         Scanner busInput, ipInput, positionInput, routeInput;
@@ -49,47 +50,58 @@ public class Reader {
         }
     }
 
-    public static String getBus() {
+    public static String[] getBus() {
         StringTokenizer st;
-            st = new StringTokenizer(busLines.get(busCount++), ",");
-//        System.out.println("after busCount++");
-        st.nextToken();
-        return st.nextToken();
+        st = new StringTokenizer(busLines.get(busCount++), ",");
+        String[] busLineInfo={st.nextToken(),st.nextToken(),st.nextToken()};
+        return busLineInfo;
     }
 
-    public static int getLineCode(){
-        StringTokenizer st;
-        st = new StringTokenizer(busLines.get(busCount-1), ",");
-        return Integer.parseInt(st.nextToken());
+    public static String[] getVehicles(String LineCode, int count){
+        String[] Vehicles= new String[count];
+        int i=0;
+        for(Map.Entry<String, String> e:LinesNbuses){
+            if(e.getKey().equals(LineCode)){
+                Vehicles[i]=e.getValue();
+                i++;
+            }
+        }
+        return Vehicles;
+
     }
 
     public static void createBusesMap(){
         for (int i = 0; i < positionLines.size(); i++) {
             StringTokenizer st;
             st = new StringTokenizer(positionLines.get(i), ",");
-            String current= st.nextToken();
-            st.nextToken();
-            LinesNbuses.add(new AbstractMap.SimpleEntry<>(Integer.parseInt(current),Integer.parseInt(st.nextToken().trim())));
+            String code= st.nextToken();
+            String route=st.nextToken();
+            String vehicleId= st.nextToken();
+            BusesNroutes.add(new AbstractMap.SimpleEntry<>(vehicleId.trim(),route.trim()));
+            LinesNbuses.add(new AbstractMap.SimpleEntry<>(code,vehicleId.trim()));
         }
     }
 
-    public static int getNumberOfBuses(int LineCode){
+    public static int getNumberOfBuses(String LineCode){
         int c=0;
-        for(Map.Entry<Integer, Integer> e:LinesNbuses){
-            if(e.getKey()==LineCode){
+        for(Map.Entry<String, String> e:LinesNbuses){
+            if(e.getKey().equals(LineCode)){
                 c++;
             }
         }
         return c;
     }
 
-    public static int getRouteCode(int LineCode){
-        for (int i = 0; i < positionLines.size(); i++) {
-            if(positionLines.get(i).startsWith(String.valueOf(LineCode))){
-
+    public static String[] getRouteCode(String LineCode, int count){
+        String[] Routes= new String[count];
+        int i=0;
+        for(Map.Entry<String, String> e:BusesNroutes){
+            if(e.getKey().equals(LineCode)){
+                Routes[i]=e.getValue();
+                i++;
             }
         }
-        return 0;
+        return Routes;
     }
 
     public static boolean moreBuses() {
@@ -104,7 +116,8 @@ public class Reader {
     public static void main(String[] args) {
         new Reader("../dataset/busLinesNew.txt", "../dataset/brokerIPs.txt", "../dataset/busPositionsNew.txt", "../dataset/RouteCodesNew.txt");
         createBusesMap();
-        System.out.println(getNumberOfBuses(1151));
+        System.out.println(getNumberOfBuses("1151"));
     }
+
 
 }
