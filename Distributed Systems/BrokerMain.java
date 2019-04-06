@@ -9,7 +9,7 @@ public class BrokerMain {
         ExecutorService requestPool = newCachedThreadPool();
         try {
             Broker currentServer = new Broker(Reader.getBrokerList("brokerIPs.txt"), InetAddress.getLocalHost());
-            System.out.println(currentServer.ipAddress.toString());
+            currentServer.init(4321);
         } catch (IOException e) {
             System.out.println("Error with server. Is the port available?");
             System.exit(1);

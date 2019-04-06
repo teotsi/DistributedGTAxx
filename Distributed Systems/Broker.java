@@ -61,6 +61,7 @@ public class Broker implements Node, Runnable {
         try {
             providerSocket = new ServerSocket(port);
             this.ipAddress = providerSocket.getInetAddress();
+            System.out.println(this.ipAddress.getLocalHost().getHostAddress());
         } catch (IOException e) {
             e.printStackTrace();
         }
