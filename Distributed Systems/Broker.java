@@ -5,6 +5,9 @@ import java.net.*;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Map;
+
+import static java.lang.Thread.sleep;
 
 
 public class Broker implements Node, Runnable {
@@ -17,8 +20,6 @@ public class Broker implements Node, Runnable {
     private InetAddress ipAddress;
     private ServerSocket providerSocket;
     private Socket connection;
-    private ObjectOutputStream out;
-    private ObjectInputStream in;
 
     public Broker(List<Broker> brokers, InetAddress ipAddress) {
         this.brokers.addAll(brokers);
@@ -43,13 +44,17 @@ public class Broker implements Node, Runnable {
     public void notifyPublisher(String message) {
     }
 
-    public void pull(Topic t) {
+    public void pull(Topic t, ObjectInputStream in) {
         try {
-            Topic t2 = (Topic) in.readObject();
-            System.out.println("Broker no" + Thread.currentThread().getId() + "read");
+            Topic tr= (Topic) in.readObject();
+            Value vr = (Value) in.readObject();
+            if(!t.getBusLine().equals(tr.getBusLine())){
+                System.out.println("Different topic");
+                return;
+            }
+            System.out.println("Broker no" + Thread.currentThread().getId() + " read");
 
-            System.out.println(t2.getBusLine());
-            this.registeredPublishers.add((Publisher) in.readObject());
+            System.out.println(vr.getLatitude()+" "+ vr.getLongitude());
         } catch (IOException e) {
             e.printStackTrace();
         } catch (ClassNotFoundException e) {
@@ -108,14 +113,14 @@ public class Broker implements Node, Runnable {
 
     @Override
     public void disconnect() {
-        try {
-            in.close();
-            out.close();
-            connection.close();
-            providerSocket.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            in.close();
+//            out.close();
+//            connection.close();
+//            providerSocket.close();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
     }
 
     @Override
@@ -126,12 +131,15 @@ public class Broker implements Node, Runnable {
     public void run() {
         System.out.println("New Broker Thread");
         try {
-            in = new ObjectInputStream(connection.getInputStream());
-            out = new ObjectOutputStream(connection.getOutputStream());
+            ObjectOutputStream out = new ObjectOutputStream(connection.getOutputStream());
+            System.out.println("after out");
+            ObjectInputStream in = new ObjectInputStream(connection.getInputStream());
+            pull(new Topic("021"), in);
+            in.close();
+            out.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        pull(null);
     }
 
 }

@@ -46,6 +46,10 @@ public class Reader {
 
     }
 
+    public static List<String[]> getPositionTable(){
+        return PositionTable;
+    }
+
     public static void createRoutesNinfo() {
         for (int i = 0; i < routeLines.size(); i++) {
             StringTokenizer st;
@@ -143,7 +147,7 @@ public class Reader {
     public static void main(String[] args) {
         new Reader("busLinesNew.txt", "brokerIPs.txt", "busPositionsNew.txt", "RouteCodesNew.txt");
         //new Publisher(new ArrayList<>()).init(4321);
-        createPositionTable();
+
         for (String[] s: Reader.PositionTable) {
             //System.out.println("hey");
             System.out.println(s[0]);
