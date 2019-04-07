@@ -12,6 +12,7 @@ public class Broker implements Node, Runnable {
     private static int c = 4321;
     private List<Subscriber> registeredSubscribers;
     private List<Publisher> registeredPublishers;
+    private List<Value> Values;
 
     private InetAddress ipAddress;
     private ServerSocket providerSocket;
@@ -23,6 +24,7 @@ public class Broker implements Node, Runnable {
         this.brokers.addAll(brokers);
         this.registeredSubscribers = new ArrayList<Subscriber>();
         this.registeredPublishers = new ArrayList<Publisher>();
+        this.Values=new ArrayList<Value>();
         this.ipAddress = ipAddress;
     }
 

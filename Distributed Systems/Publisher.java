@@ -19,6 +19,7 @@ public class Publisher implements Node, Runnable, Serializable {
     String[] busLineInfo;
     List<Bus> ListOfBuses=new ArrayList<Bus>();
     String[] Vehicles;
+    List<Value> Values=new ArrayList<Value>();
 
     public Publisher(List<Broker> brokers) {
         this.brokers.addAll(brokers);

@@ -16,11 +16,14 @@ public class Reader {
     private static Set<Map.Entry<String, String>> BusesNroutes = new HashSet<>();
     private static Set<Map.Entry<String, String>> RoutesNinfo = new HashSet<>();
     private static final String PATH = "../dataset/";
+    private static List<String[]> PositionTable=new ArrayList<>();
+
     public Reader(String busLinesFileName, String ipFileName, String busPositionsFileName, String routeCodesFileName) {
         busLines = getFileLines(busLinesFileName);
         totalBusLines = busLines.size();
         positionLines = getFileLines(busPositionsFileName);
         routeLines = getFileLines(routeCodesFileName);
+
     }
 
     public static String[] getBus() {
@@ -73,7 +76,16 @@ public class Reader {
             String vehicleId = st.nextToken();
             BusesNroutes.add(new AbstractMap.SimpleEntry<>(vehicleId.trim(), route.trim()));
             LinesNbuses.add(new AbstractMap.SimpleEntry<>(code, vehicleId.trim()));
+
         }
+    }
+
+    public static void createPositionTable(){
+        for (String line:positionLines) {
+            String[] lineinfo= line.split(",");
+            PositionTable.add(lineinfo);
+        }
+
     }
 
     public static int getNumberOfBuses(String LineCode) {
@@ -130,7 +142,13 @@ public class Reader {
 
     public static void main(String[] args) {
         new Reader("busLinesNew.txt", "brokerIPs.txt", "busPositionsNew.txt", "RouteCodesNew.txt");
-        new Publisher(new ArrayList<>()).init(4321);
+        //new Publisher(new ArrayList<>()).init(4321);
+        createPositionTable();
+        for (String[] s: Reader.PositionTable) {
+            //System.out.println("hey");
+            System.out.println(s[0]);
+
+        }
     }
 
 
