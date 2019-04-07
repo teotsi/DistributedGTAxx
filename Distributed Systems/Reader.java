@@ -120,7 +120,6 @@ public class Reader {
         for (String ip : ipLines) {
             try {
                 brokers.add(new Broker(new ArrayList<>(), InetAddress.getByName(ip)));
-                System.out.println(ip);
             } catch (UnknownHostException e) {
                 System.out.println("Unknown IP address " + ip + ". Check your IP file.");
                 e.printStackTrace();

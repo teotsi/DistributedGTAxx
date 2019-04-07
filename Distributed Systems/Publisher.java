@@ -2,12 +2,12 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 import static java.lang.Thread.sleep;
 
@@ -40,11 +40,11 @@ public class Publisher implements Node, Runnable, Serializable {
             System.out.println(ListOfBuses.get(i).getVehicleId()+" "+ ListOfBuses.get(i).getRouteCode());
         }
         System.out.println("sync done");
-//        try {
-//            connectionSocket = new Socket(InetAddress.getByName("127.0.0.1"), port); //initialising client
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
+        try {
+            connectionSocket = new Socket(InetAddress.getByName("10.37.56.235"), port); //initialising client
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -103,14 +103,13 @@ public class Publisher implements Node, Runnable, Serializable {
 
     @Override
     public void run() {
-        init(brokers.get(new Random().nextInt(brokers.size())).providerSocket.getLocalPort());
+        init(4321);
            try {
                sleep(50);
                connect();
 
                push(new Topic(busLine), null);
                while (true) {
-                   sleep(50);
                }
            } catch (InterruptedException e) {
                e.printStackTrace();

@@ -10,19 +10,19 @@ import java.util.List;
 public class Broker implements Node, Runnable {
 
     private static int c = 4321;
-    List<Subscriber> registeredSubscribers;
-    List<Publisher> registeredPublishers;
-    InetAddress ipAddress;
-    ServerSocket providerSocket;
-    Socket connection;
-    ObjectOutputStream out;
-    ObjectInputStream in;
+    private List<Subscriber> registeredSubscribers;
+    private List<Publisher> registeredPublishers;
+
+    private InetAddress ipAddress;
+    private ServerSocket providerSocket;
+    private Socket connection;
+    private ObjectOutputStream out;
+    private ObjectInputStream in;
 
     public Broker(List<Broker> brokers, InetAddress ipAddress) {
         this.brokers.addAll(brokers);
         this.registeredSubscribers = new ArrayList<Subscriber>();
         this.registeredPublishers = new ArrayList<Publisher>();
-        this.brokers.add(this);
         this.ipAddress = ipAddress;
     }
 
@@ -55,26 +55,40 @@ public class Broker implements Node, Runnable {
         }
     }
 
+    public InetAddress getIpAddress() {
+        return ipAddress;
+    }
+
     @Override
     public void init(int port) {
         try {
             providerSocket = new ServerSocket(port);
-            this.ipAddress = providerSocket.getInetAddress();
-            Enumeration<NetworkInterface> e = NetworkInterface.getNetworkInterfaces();
+            Enumeration<NetworkInterface> e = NetworkInterface.getNetworkInterfaces(); //we need to find our local IP
+            // and linux systems do not share theirs directly
+            // via ServerSocket.getInetAddress,
+            // so the following thing is necessary
             boolean flag = false;
-            while(e.hasMoreElements()){
+            while (e.hasMoreElements()) {
                 NetworkInterface ni = e.nextElement();
                 Enumeration<InetAddress> IPs = ni.getInetAddresses();
-                while(IPs.hasMoreElements()){
+                while (IPs.hasMoreElements()) {
                     InetAddress currentIP = IPs.nextElement();
-                    if(!currentIP.isLoopbackAddress() && currentIP instanceof Inet4Address){
-                        System.out.println(currentIP.getHostAddress());
+                    if (!currentIP.isLoopbackAddress() && currentIP instanceof Inet4Address) {
+                        this.ipAddress = currentIP;
                         flag = true;
                         break;
                     }
                 }
-                if(flag) break;
+                if (flag) break;
             }
+            Broker brokerToRemove = null;
+            for (Broker b : brokers) {
+                if (b.getIpAddress().equals(this.getIpAddress())) {
+                    brokerToRemove = b;
+                    break;
+                }
+            }
+            brokers.remove(brokerToRemove);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -84,8 +98,6 @@ public class Broker implements Node, Runnable {
     public void connect() {
         try {
             connection = providerSocket.accept();
-            out = new ObjectOutputStream(connection.getOutputStream());
-            in = new ObjectInputStream(connection.getInputStream());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -110,14 +122,14 @@ public class Broker implements Node, Runnable {
     }
 
     public void run() {
-        System.out.println("entered broker");
-            init(c++);
-        while (true) {
-            System.out.println("brooo");
-            connect();
-
-            pull(null);
+        System.out.println("New Broker Thread");
+        try {
+            in = new ObjectInputStream(connection.getInputStream());
+            out = new ObjectOutputStream(connection.getOutputStream());
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+        pull(null);
     }
 
 }
