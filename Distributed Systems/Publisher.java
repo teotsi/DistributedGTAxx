@@ -13,12 +13,12 @@ import static java.lang.Thread.sleep;
 
 public class Publisher implements Node, Runnable, Serializable {
     Socket connectionSocket;
-    ObjectOutputStream out;
-    ObjectInputStream in;
-    String busLine;
-    String[] busLineInfo;
-    List<Bus> ListOfBuses=new ArrayList<Bus>();
-    String[] Vehicles;
+    private ObjectOutputStream out;
+    private ObjectInputStream in;
+    private String busLine;
+    private String[] busLineInfo;
+    private List<Bus> ListOfBuses = new ArrayList<Bus>();
+    private String[] Vehicles;
 
     public Publisher(List<Broker> brokers) {
         this.brokers.addAll(brokers);
@@ -27,21 +27,21 @@ public class Publisher implements Node, Runnable, Serializable {
     @Override
     public void init(int port) {
         System.out.println("sync starts");
-        this.busLineInfo=Reader.getBus();
+        this.busLineInfo = Reader.getBus();
         this.busLine = this.busLineInfo[1];
         Reader.createBusesMap();//na mpei sthn main
         Reader.createRoutesNinfo();//na mpei sthn main
-        int numofbuses=Reader.getNumberOfBuses(busLineInfo[0]);
-        this.Vehicles=Reader.getVehicles(busLineInfo[0],numofbuses);
-        for (int i = 0; i < numofbuses ; i++) {
-            ListOfBuses.add(new Bus(busLineInfo[0],Reader.getRouteCode(this.Vehicles[i]),this.Vehicles[i],busLineInfo[2],busLineInfo[1],Reader.getInfo(Reader.getRouteCode(this.Vehicles[i]))));
+        int numofbuses = Reader.getNumberOfBuses(busLineInfo[0]);
+        this.Vehicles = Reader.getVehicles(busLineInfo[0], numofbuses);
+        for (int i = 0; i < numofbuses; i++) {
+            ListOfBuses.add(new Bus(busLineInfo[0], Reader.getRouteCode(this.Vehicles[i]), this.Vehicles[i], busLineInfo[2], busLineInfo[1], Reader.getInfo(Reader.getRouteCode(this.Vehicles[i]))));
         }
         for (int i = 0; i < numofbuses; i++) {
-            System.out.println(ListOfBuses.get(i).getVehicleId()+" "+ ListOfBuses.get(i).getRouteCode());
+            System.out.println(ListOfBuses.get(i).getVehicleId() + " " + ListOfBuses.get(i).getRouteCode());
         }
         System.out.println("sync done");
         try {
-            connectionSocket = new Socket(InetAddress.getByName("127.0.0.1"), port); //initialising client
+            connectionSocket = new Socket(InetAddress.getByName("10.37.60.1"), port); //initialising client
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -82,7 +82,7 @@ public class Publisher implements Node, Runnable, Serializable {
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
-        return new Broker(null,null);
+        return new Broker(null, null);
     }
 
     public void push(Topic t, Value v) {
@@ -101,18 +101,22 @@ public class Publisher implements Node, Runnable, Serializable {
     public void notifyFailure(Broker b) {
     }
 
+    public String getBusLine() {
+        return busLine;
+    }
+
     @Override
     public void run() {
         init(4321);
-           try {
-               sleep(50);
-               connect();
+        try {
+            sleep(50);
+            connect();
 
-               push(new Topic(busLine), null);
-               while (true) {
-               }
-           } catch (InterruptedException e) {
-               e.printStackTrace();
-           }
+            push(new Topic(busLine), null);
+            while (true) {
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }
