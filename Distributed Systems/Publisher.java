@@ -41,7 +41,7 @@ public class Publisher implements Node, Runnable, Serializable {
         }
         System.out.println("sync done");
         try {
-            connectionSocket = new Socket(InetAddress.getByName("10.37.56.235"), port); //initialising client
+            connectionSocket = new Socket(InetAddress.getByName("127.0.0.1"), port); //initialising client
         } catch (IOException e) {
             e.printStackTrace();
         }
