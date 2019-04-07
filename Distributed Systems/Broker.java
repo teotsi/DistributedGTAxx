@@ -5,9 +5,6 @@ import java.net.*;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.Map;
-
-import static java.lang.Thread.sleep;
 
 
 public class Broker implements Node, Runnable {
@@ -21,12 +18,19 @@ public class Broker implements Node, Runnable {
     private ServerSocket providerSocket;
     private Socket connection;
 
-    public Broker(List<Broker> brokers, InetAddress ipAddress) {
+    public Broker(List<Broker> brokers, InetAddress ipAddress,boolean flag) {
         this.brokers.addAll(brokers);
         this.registeredSubscribers = new ArrayList<Subscriber>();
         this.registeredPublishers = new ArrayList<Publisher>();
         this.Values=new ArrayList<Value>();
         this.ipAddress = ipAddress;
+        if(flag){
+            init(4321);
+            while(true){
+                this.connection = null;
+                connect();
+            }
+        }
     }
 
     public void calculateKeys() {
@@ -48,6 +52,7 @@ public class Broker implements Node, Runnable {
         try {
             Topic tr= (Topic) in.readObject();
             Value vr = (Value) in.readObject();
+            in.close();
             if(!t.getBusLine().equals(tr.getBusLine())){
                 System.out.println("Different topic");
                 return;
@@ -105,6 +110,7 @@ public class Broker implements Node, Runnable {
     public void connect() {
         try {
             connection = providerSocket.accept();
+            new Thread(new BrokerRequest(connection)).start();
         } catch (IOException e) {
             e.printStackTrace();
         }

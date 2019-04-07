@@ -135,7 +135,7 @@ public class Reader {
         ipLines = getFileLines(ipFileName);
         for (String ip : ipLines) {
             try {
-                brokers.add(new Broker(new ArrayList<>(), InetAddress.getByName(ip)));
+                brokers.add(new Broker(new ArrayList<>(), InetAddress.getByName(ip),true));
             } catch (UnknownHostException e) {
                 System.out.println("Unknown IP address " + ip + ". Check your IP file.");
                 e.printStackTrace();

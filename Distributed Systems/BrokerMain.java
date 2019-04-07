@@ -4,7 +4,7 @@ import java.net.InetAddress;
 public class BrokerMain {
     public static void main(String[] args) {
         try {
-            Broker currentServer = new Broker(Reader.getBrokerList("brokerIPs.txt"), InetAddress.getLocalHost());
+            Broker currentServer = new Broker(Reader.getBrokerList("brokerIPs.txt"), InetAddress.getLocalHost(), true);
             currentServer.init(4321);
             while (true) {
                 currentServer.connect();
