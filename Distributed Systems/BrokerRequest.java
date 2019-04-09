@@ -22,7 +22,7 @@ public class BrokerRequest implements Runnable{
                 System.out.println("Different topic");
                return false;
             }
-            Broker.addBuffer(tr,vr);
+            Broker.addToBuffer(tr,vr);
             System.out.println("Broker no" + Thread.currentThread().getId() + " read");
             System.out.println(vr.getLatitude()+" "+ vr.getLongitude());
         } catch (IOException e) {

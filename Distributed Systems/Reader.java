@@ -18,12 +18,28 @@ public class Reader {
     private static final String PATH = "../dataset/";
     private static List<String[]> PositionTable=new ArrayList<>();
 
-    public Reader(String busLinesFileName, String ipFileName, String busPositionsFileName, String routeCodesFileName) {
-        busLines = getFileLines(busLinesFileName);
+    public Reader(String busLinesFileName, String busPositionsFileName, String routeCodesFileName) {
+        createBusLines(busLinesFileName);
         totalBusLines = busLines.size();
         positionLines = getFileLines(busPositionsFileName);
         routeLines = getFileLines(routeCodesFileName);
 
+    }
+
+    public static List<String> IDs(String busLinesFileName){
+        createBusLines(busLinesFileName);
+        List<String> Ids= new ArrayList<String>();
+        for (int i = 0; i < busLines.size(); i++) {
+            StringTokenizer st=new StringTokenizer(busLines.get(i), ",");;
+            st.nextToken();
+            Ids.add(st.nextToken());
+            st.nextToken();
+        }
+        return Ids;
+    }
+
+    public static void createBusLines(String busLinesFileName){
+        busLines = getFileLines(busLinesFileName);
     }
 
     public static String[] getBus() {
@@ -130,12 +146,16 @@ public class Reader {
         return fileLines;
     }
 
+    public static List<String> getIPs(){
+        return  ipLines;
+    }
+
     public static List<Broker> getBrokerList(String ipFileName) {
         List<Broker> brokers = new ArrayList<>();
         ipLines = getFileLines(ipFileName);
         for (String ip : ipLines) {
             try {
-                brokers.add(new Broker(new ArrayList<>(), InetAddress.getByName(ip),true));
+                brokers.add(new Broker(new ArrayList<>(),null, InetAddress.getByName(ip),false));
             } catch (UnknownHostException e) {
                 System.out.println("Unknown IP address " + ip + ". Check your IP file.");
                 e.printStackTrace();
@@ -145,7 +165,7 @@ public class Reader {
     }
 
     public static void main(String[] args) {
-        new Reader("busLinesNew.txt", "brokerIPs.txt", "busPositionsNew.txt", "RouteCodesNew.txt");
+        new Reader("busLinesNew.txt", "busPositionsNew.txt", "RouteCodesNew.txt");
         //new Publisher(new ArrayList<>()).init(4321);
 
         for (String[] s: Reader.PositionTable) {

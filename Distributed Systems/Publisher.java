@@ -100,7 +100,7 @@ public class Publisher implements Node, Runnable, Serializable {
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
-        return new Broker(null, null, true);
+        return new Broker(null,null, null, true);
     }
 
     public void push(Topic t, Value v) throws IOException {
