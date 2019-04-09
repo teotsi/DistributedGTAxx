@@ -25,6 +25,10 @@ public class BrokerRequest implements Runnable{
             System.out.println("Broker no" + Thread.currentThread().getId() + " read");
             System.out.println(vr.getLatitude()+" "+ vr.getLongitude());
         } catch (IOException e) {
+           if(e.getMessage().contains("Connection reset")){
+               System.out.println("Connection reset. Publisher may be down.");
+               return false;
+           }
             e.printStackTrace();
         } catch (ClassNotFoundException e) {
             e.printStackTrace();

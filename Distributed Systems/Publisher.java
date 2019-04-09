@@ -4,6 +4,7 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.net.SocketException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -17,9 +18,9 @@ public class Publisher implements Node, Runnable, Serializable {
     ObjectInputStream in;
     String busLine;
     String[] busLineInfo;
-    List<Bus> ListOfBuses=new ArrayList<Bus>();
+    List<Bus> ListOfBuses = new ArrayList<Bus>();
     String[] Vehicles;
-    List<Value> Values=new ArrayList<Value>();
+    List<Value> Values = new ArrayList<Value>();
 
     public Publisher(List<Broker> brokers) {
         this.brokers.addAll(brokers);
@@ -28,14 +29,14 @@ public class Publisher implements Node, Runnable, Serializable {
     @Override
     public void init(int port) {
         System.out.println("sync starts");
-        this.busLineInfo=Reader.getBus();
+        this.busLineInfo = Reader.getBus();
         this.busLine = this.busLineInfo[1];
         Reader.createBusesMap();//na mpei sthn main
         Reader.createRoutesNinfo();//na mpei sthn main
-        int numofbuses=Reader.getNumberOfBuses(busLineInfo[0]);
-        this.Vehicles=Reader.getVehicles(busLineInfo[0],numofbuses);
-        for (int i = 0; i < numofbuses ; i++) {
-            ListOfBuses.add(new Bus(busLineInfo[0],Reader.getRouteCode(this.Vehicles[i]),this.Vehicles[i],busLineInfo[2],busLineInfo[1],Reader.getInfo(Reader.getRouteCode(this.Vehicles[i]))));
+        int numofbuses = Reader.getNumberOfBuses(busLineInfo[0]);
+        this.Vehicles = Reader.getVehicles(busLineInfo[0], numofbuses);
+        for (int i = 0; i < numofbuses; i++) {
+            ListOfBuses.add(new Bus(busLineInfo[0], Reader.getRouteCode(this.Vehicles[i]), this.Vehicles[i], busLineInfo[2], busLineInfo[1], Reader.getInfo(Reader.getRouteCode(this.Vehicles[i]))));
         }
         createValues();
         System.out.println("sync done");
@@ -47,18 +48,18 @@ public class Publisher implements Node, Runnable, Serializable {
         }
     }
 
-    public void createValues(){ //na to trexei ka8e publisher
-        List<String[]> table= Reader.getPositionTable();
-        for(String[] line: table){
-            for(Bus b: ListOfBuses){
-                if(line[0].trim().equals(b.getLineNumber())&& line[2].trim().equals(b.getVehicleId())){
+    public void createValues() { //na to trexei ka8e publisher
+        List<String[]> table = Reader.getPositionTable();
+        for (String[] line : table) {
+            for (Bus b : ListOfBuses) {
+                if (line[0].trim().equals(b.getLineNumber()) && line[2].trim().equals(b.getVehicleId())) {
                     Values.add(new Value(b, Double.parseDouble(line[3]), Double.parseDouble(line[4])));
                 }
 
             }
         }
         Values.add(null);
-        System.out.println(Values.size()+ "THE SIZE OF VALUE");
+        System.out.println(Values.size() + "THE SIZE OF VALUE");
     }
 
 
@@ -99,19 +100,16 @@ public class Publisher implements Node, Runnable, Serializable {
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
-        return new Broker(null,null,true);
+        return new Broker(null, null, true);
     }
 
-    public void push(Topic t, Value v) {
-        try {
-            out.writeObject(t);
-            out.flush();
-            out.writeObject(v);
-            out.flush();
-            System.out.println("Publisher no" + Thread.currentThread().getId() + " pushed");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public void push(Topic t, Value v) throws IOException {
+        out.writeObject(t);
+        out.flush();
+        out.writeObject(v);
+        out.flush();
+        System.out.println("Publisher no" + Thread.currentThread().getId() + " pushed");
+
     }
 
 
@@ -123,8 +121,20 @@ public class Publisher implements Node, Runnable, Serializable {
         init(4321);
         connect();
         System.out.println("before push");
-        for(Value v: Values) {
-            push(new Topic(busLine), v);
+        for (Value v : Values) {
+            try {
+                push(new Topic(busLine), v);
+            } catch (IOException e) {
+                if (e instanceof SocketException) {
+                    if (e.getMessage().contains("Connection reset")) {
+                        System.out.println("Connection reset, broker may be down.");
+                    } else {
+                        System.out.println("Connection denied, probably wrong topic.");
+                    }
+                    break;
+                }
+                e.printStackTrace();
+            }
             try {
                 sleep(50);
             } catch (InterruptedException e) {
