@@ -10,23 +10,26 @@ public class BrokerRequest implements Runnable{
         this.connectionSocket= socket;
     }
 
-    public synchronized void pull(Topic t, ObjectInputStream in) {
+    public synchronized boolean pull(Topic t, ObjectInputStream in) {
         try {
             Topic tr= (Topic) in.readObject();
             Value vr = (Value) in.readObject();
-            in.close();
+            if(vr==null){
+                System.out.println("found null");
+                return false;
+            }
             if(!t.getBusLine().equals(tr.getBusLine())){
                 System.out.println("Different topic");
-               return;
+               return false;
             }
             System.out.println("Broker no" + Thread.currentThread().getId() + " read");
-
             System.out.println(vr.getLatitude()+" "+ vr.getLongitude());
         } catch (IOException e) {
             e.printStackTrace();
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
+        return true;
     }
     @Override
     public void run() {
@@ -35,7 +38,10 @@ public class BrokerRequest implements Runnable{
         ObjectOutputStream out = new ObjectOutputStream(connectionSocket.getOutputStream());
         System.out.println("after out");
         ObjectInputStream in = new ObjectInputStream(connectionSocket.getInputStream());
-        pull(new Topic("021"), in);
+        boolean bool;
+        do{
+           bool=pull(new Topic("021"), in);
+        }while(bool);
         in.close();
         out.close();
     }catch(IOException e){

@@ -9,6 +9,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.lang.Thread.sleep;
+
 public class Publisher implements Node, Runnable, Serializable {
     Socket connectionSocket;
     ObjectOutputStream out;
@@ -55,7 +57,10 @@ public class Publisher implements Node, Runnable, Serializable {
 
             }
         }
+        Values.add(null);
+        System.out.println(Values.size()+ "THE SIZE OF VALUE");
     }
+
 
     @Override
     public void connect() {
@@ -118,7 +123,14 @@ public class Publisher implements Node, Runnable, Serializable {
         init(4321);
         connect();
         System.out.println("before push");
-        push(new Topic(busLine), Values.get(0));
+        for(Value v: Values) {
+            push(new Topic(busLine), v);
+            try {
+                sleep(50);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
         while (true) {
         }
     }
