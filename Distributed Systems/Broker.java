@@ -1,39 +1,72 @@
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.math.BigInteger;
 import java.net.*;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.*;
 
 
 public class Broker implements Node, Runnable {
 
-    private static int c = 4321;
+    private static int p = 4321;
     private List<Subscriber> registeredSubscribers;
     private List<Publisher> registeredPublishers;
-    private List<Value> Values;
+    private static List<Map.Entry<Topic,List<Value>>> Buffer=new ArrayList<Map.Entry<Topic, List<Value>>>(); //contains all the buses from busPositionNew.txt that belongs to the broker.
 
     private InetAddress ipAddress;
     private ServerSocket providerSocket;
     private Socket connection;
+    private String Hash;
 
     public Broker(List<Broker> brokers, InetAddress ipAddress,boolean flag) {
         this.brokers.addAll(brokers);
         this.registeredSubscribers = new ArrayList<Subscriber>();
         this.registeredPublishers = new ArrayList<Publisher>();
-        this.Values=new ArrayList<Value>();
         this.ipAddress = ipAddress;
         if(flag){
-            init(4321);
+            init(p);
+            this.Hash=calculateKeys();
+            System.out.println(Hash);
             while(true){
                 this.connection = null;
                 connect();
             }
         }
+
     }
 
-    public void calculateKeys() {
+    public String calculateKeys() {//hashing ip+port
+        MessageDigest md5 = null;
+        try {
+            md5 = MessageDigest.getInstance("MD5");
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        md5.update((ipAddress.getHostAddress()+p).getBytes());
+        byte[] md=md5.digest();
+        BigInteger big= new BigInteger(1,md);
+        String Hash=big.toString(16);
+        while(Hash.length()<32){
+            Hash+="0";
+        }
+        return Hash;
+    }
+
+    public static void addBuffer(Topic t, Value v){
+        boolean flag=true;
+        for(Map.Entry<Topic,List<Value>> e: Buffer){
+            if(e.getKey().equals(t)) {
+                e.getValue().add(v);
+                flag=false;
+            }
+        }
+        if(flag){
+            Map.Entry<Topic,List<Value>> entry=new AbstractMap.SimpleEntry<Topic, List<Value>>(t,new ArrayList<Value>());
+            entry.getValue().add(v);
+            Buffer.add(entry);
+        }
 
     }
 
