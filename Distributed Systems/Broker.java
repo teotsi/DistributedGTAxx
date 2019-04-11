@@ -10,13 +10,13 @@ import java.util.*;
 
 public class Broker implements Node, Runnable {
 
-    private static int p = 4321;
+    private static int p = 4321; //port
     private List<Subscriber> registeredSubscribers;
     private List<Publisher> registeredPublishers;
     private static List<Map.Entry<Topic,List<Value>>> Buffer=new ArrayList<Map.Entry<Topic, List<Value>>>(); //contains all the buses from busPositionNew.txt that belongs to the broker.
-    private static String[][] Hashes=new String[3][2];
+    private static String[][] Hashes=new String[3][2]; //contains all broker IPs and their md5 hashes 
     private static String[][] IDHashes;
-    private static List<String> Keys=new ArrayList<String>();
+    private static List<String> Keys=new ArrayList<String>(); //contains all keys current broker is responsible for
 
     private InetAddress ipAddress;
     private ServerSocket providerSocket;
@@ -32,10 +32,10 @@ public class Broker implements Node, Runnable {
             this.busLinesFileName=busLinesFileName;
             init(p);
             for (int i = 0; i <3 ; i++) {
-                Hashes[i][0]=Reader.getIPs().get(i);
+                Hashes[i][0]=Reader.getIPs().get(i); //storing broker IPs
             }
             for (int i = 0; i <2 ; i++) {
-                Hashes[i][1]= calculateHash(Hashes[i][0]);
+                Hashes[i][1]= calculateHash(Hashes[i][0]+p); //hashing ip+port of each broker and storing it
             }
             IDHashes=calculateKeys();
             System.out.println(IDHashes[3][1]);
@@ -48,14 +48,14 @@ public class Broker implements Node, Runnable {
 
     }
 
-    public String calculateHash(String ip) {//hashing ip+port
+    public String calculateHash(String message) {//hashing function
         MessageDigest md5 = null;
         try {
-            md5 = MessageDigest.getInstance("MD5");
+            md5 = MessageDigest.getInstance("MD5"); //using MD5 algorithm
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
-        md5.update((ip+p).getBytes());
+        md5.update((message).getBytes());
         byte[] md=md5.digest();
         BigInteger big= new BigInteger(1,md);
         String Hash=big.toString(16);
@@ -69,20 +69,7 @@ public class Broker implements Node, Runnable {
         String[][] idhases=new String[Reader.IDs(busLinesFileName).size()][2];
         for (int i = 0; i <Reader.IDs(busLinesFileName).size() ; i++) {
             idhases[i][0]=Reader.IDs(busLinesFileName).get(i);
-            MessageDigest md5 = null;
-            try {
-                md5 = MessageDigest.getInstance("MD5");
-            } catch (NoSuchAlgorithmException e) {
-                e.printStackTrace();
-            }
-            md5.update((idhases[i][0]).getBytes());
-            byte[] md=md5.digest();
-            BigInteger big= new BigInteger(1,md);
-            String Hash=big.toString(16);
-            while(Hash.length()<32){
-                Hash+="0";
-            }
-            idhases[i][1]=Hash;
+            idhases[i][1]=calculateHash(idhases[i][0]);
         }
         return idhases;
     }
@@ -116,10 +103,10 @@ public class Broker implements Node, Runnable {
 
     public void pull(Topic t, ObjectInputStream in) {
         try {
-            Topic tr= (Topic) in.readObject();
-            Value vr = (Value) in.readObject();
-            in.close();
-            if(!t.getBusLine().equals(tr.getBusLine())){
+            Topic tr= (Topic) in.readObject();   //reading Topic from publisher's push 
+            Value vr = (Value) in.readObject(); //reading Value from publisher's push
+            in.close(); //closing stream
+            if(!t.equals(tr)){  //in case we receive the wrong Topic
                 System.out.println("Different topic");
                 return;
             }
@@ -133,7 +120,7 @@ public class Broker implements Node, Runnable {
         }
     }
 
-    public InetAddress getIpAddress() {
+    public InetAddress getIpAddress() { //returns current broker's IP
         return ipAddress;
     }
 
@@ -146,12 +133,12 @@ public class Broker implements Node, Runnable {
             // via ServerSocket.getInetAddress,
             // so the following thing is necessary
             boolean flag = false;
-            while (e.hasMoreElements()) {
-                NetworkInterface ni = e.nextElement();
+            while (e.hasMoreElements()) { //scanning all network Interface
+                NetworkInterface ni = e.nextElement(); 
                 Enumeration<InetAddress> IPs = ni.getInetAddresses();
                 while (IPs.hasMoreElements()) {
                     InetAddress currentIP = IPs.nextElement();
-                    if (!currentIP.isLoopbackAddress() && currentIP instanceof Inet4Address) {
+                    if (!currentIP.isLoopbackAddress() && currentIP instanceof Inet4Address) { //the first non-loopback IPv4 address is the one we need
                         this.ipAddress = currentIP;
                         flag = true;
                         break;
@@ -159,7 +146,7 @@ public class Broker implements Node, Runnable {
                 }
                 if (flag) break;
             }
-            Broker brokerToRemove = null;
+            Broker brokerToRemove = null; //broker removes itself from his list
             for (Broker b : brokers) {
                 if (b.getIpAddress().equals(this.getIpAddress())) {
                     brokerToRemove = b;
@@ -175,8 +162,8 @@ public class Broker implements Node, Runnable {
     @Override
     public void connect() {
         try {
-            connection = providerSocket.accept();
-            new Thread(new BrokerRequest(connection)).start();
+            connection = providerSocket.accept(); 
+            new Thread(new BrokerRequest(connection)).start();//handling connection into a new thread
         } catch (IOException e) {
             e.printStackTrace();
         }
