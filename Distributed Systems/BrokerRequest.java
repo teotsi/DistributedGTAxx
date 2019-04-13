@@ -50,8 +50,8 @@ public class BrokerRequest implements Runnable{
         if (message.contains("p")){
             out.writeObject(AllKeys);
             out.flush();
-            System.out.println(message.substring(message.length()-1));
-            if(Keys.contains(message.substring(message.length()-1))){
+            System.out.println(message.substring(0,message.length()-1));
+            if(Keys.contains(message.substring(0,message.length()-1))){
                 out.writeObject(true);
                 out.flush();
                 boolean bool;
