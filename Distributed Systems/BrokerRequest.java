@@ -2,6 +2,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -74,8 +75,8 @@ public class BrokerRequest implements Runnable{
                 out.flush();
                 for(Map.Entry<Topic, List<Value>> e: Buffer){
                     if(e.getKey().equals(topic)){
-                        for(Value v: e.getValue()){
-                            out.writeObject(v);
+                        for(Iterator<Value> v= e.getValue().iterator(); v.hasNext();){
+                            out.writeObject(v.next());
                             out.flush();
 //                            if(v==null){
 //                                System.out.println("v is null");
