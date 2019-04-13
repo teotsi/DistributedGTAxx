@@ -40,10 +40,10 @@ public class Subscriber implements Node {
             }
             visualiseData(vr);
         } catch (IOException e) {
-            if (e.getMessage().contains("Connection reset")) {
-                System.out.println("Connection reset. Subscriber may be down.");
-                return false;
-            }
+//            if (e.getMessage().contains("Connection reset")) {
+//                System.out.println("Connection reset. Subscriber may be down.");
+//                return false;
+//            }
             e.printStackTrace();
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
@@ -92,6 +92,7 @@ public class Subscriber implements Node {
                     disconnect();
                     wrongBroker=false;
                 } else {
+                    System.out.println("other broker");
                     for (int i = 0; i < 3; i++) {
                         if (AllKeys.get(i).getValue().contains(currentLine)) {
                             try {
