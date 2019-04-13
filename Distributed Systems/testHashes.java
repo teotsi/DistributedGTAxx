@@ -7,7 +7,7 @@ import java.util.List;
 
 public class testHashes {
     public static void main(String[] args) {
-        final int  MOD = 99; //modulo
+        final int  MOD = 10; //modulo
         new Reader("busLinesNew.txt", "busPositionsNew.txt", "RouteCodesNew.txt");
         String[][] busLinesHash = new String[20][2];
         for (int i = 0; i < 20; i++) {

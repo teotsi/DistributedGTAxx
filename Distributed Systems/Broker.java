@@ -1,6 +1,4 @@
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.math.BigInteger;
 import java.net.*;
 import java.security.MessageDigest;
@@ -17,6 +15,7 @@ public class Broker implements Node, Runnable {
     private static String[][] Hashes=new String[3][2]; //contains all broker IPs and their md5 hashes 
     private static String[][] IDHashes;
     private static List<String> Keys=new ArrayList<String>(); //contains all keys current broker is responsible for
+    private List<Map.Entry<String,List<String>>> OtherKeys=new ArrayList<>();//contains the other keys
 
     private InetAddress ipAddress;
     private ServerSocket providerSocket;
@@ -48,6 +47,96 @@ public class Broker implements Node, Runnable {
 
     }
 
+    public void distributeKeys(){
+        final int  MOD = 10; //modulo
+        new Reader("busLinesNew.txt", "busPositionsNew.txt", "RouteCodesNew.txt");
+        String[][] busLinesHash = new String[20][2];
+        for (int i = 0; i < 20; i++) {
+            busLinesHash[i][0] = Reader.getBus()[1];
+            busLinesHash[i][1] = calculateHash(busLinesHash[i][0]);
+        }
+
+        Reader.getBrokerList("brokerIPs.txt");
+        List<String> ips = Reader.getIPs();
+        String[][] ipHashes = new String[3][3];
+        for (int j = 0; j < 3; j++) {
+            ipHashes[j][0] = calculateHash(ips.get(j) + "4321");
+            ipHashes[j][1] = "";
+            ipHashes[j][2] = ips.get(j);
+        }
+        for (int i = 0; i < 20; i++) { //applying mod operation to MD5 Hashes
+            busLinesHash[i][1] =new BigInteger(busLinesHash[i][1]).mod(BigInteger.valueOf(MOD)).toString();
+        }
+        for (int i = 0; i < 3; i++) { //same
+            ipHashes[i][0] = new BigInteger(ipHashes[i][0]).mod(BigInteger.valueOf(MOD)).toString();
+        }
+
+        Arrays.sort(ipHashes, (entry1, entry2) -> { //lambda expression for sorting 2d arrays
+            final int hash1 = Integer.parseInt(entry1[0]);
+            final int hash2 = Integer.parseInt(entry2[0]);
+            return hash1-hash2;
+        });
+        Arrays.sort(busLinesHash, (entry1, entry2) -> { //same
+            final int hash1 = Integer.parseInt(entry1[1]);
+            final int hash2 = Integer.parseInt(entry2[1]);
+            return hash1 -hash2;
+        });
+//        for (int i = 0; i < 20; i++) {
+//            System.out.println("line " + busLinesHash[i][0] + ", hash=" + busLinesHash[i][1]);
+//        }
+        System.out.println("ip hashes");
+        for (int i = 0; i < 3 ; i++) {
+            System.out.println(ipHashes[i][2] + ": " + ipHashes[i][0]);
+
+        }
+        int maxIndex; //last element we added. We don't wanna iterate over it again
+        for (maxIndex = 0; maxIndex < 20; maxIndex++) { //adding elements to lowest broker
+            if(Integer.parseInt(busLinesHash[maxIndex][1])<Integer.parseInt(ipHashes[0][0])){
+                ipHashes[0][1]+=busLinesHash[maxIndex][0]+",";
+            }else{
+                break;
+            }
+        }
+        for (int i = 1; i < 3; i++) {
+            for (int j = maxIndex; j < 20; j++) {
+                if(Integer.parseInt(busLinesHash[j][1])>=Integer.parseInt(ipHashes[i-1][0])&&
+                        Integer.parseInt(busLinesHash[j][1])<Integer.parseInt(ipHashes[i][0])){
+                    ipHashes[i][1]+=busLinesHash[j][0]+",";
+                }else{
+                    if(i==2){
+                        ipHashes[0][1]+=busLinesHash[j][0]+",";
+                    }else{
+                        maxIndex=j;
+                        break;
+                    }
+                }
+            }
+        }
+        for (int i = 0; i < 3 ; i++) {
+            System.out.println(ipHashes[i][2] + ": " + ipHashes[i][1]);
+
+        }
+        for (int i = 0; i <3; i++) {
+            StringTokenizer st=new StringTokenizer(ipHashes[i][1]);
+            System.out.println(ipAddress.getHostAddress());
+            if (ipHashes[i][2].equals(ipAddress.getHostAddress())){
+                while(st.hasMoreTokens()){
+                    Keys.add(st.nextToken());
+                }
+            }else{
+                Map.Entry<String, List<String>> currentEntry= new AbstractMap.SimpleEntry<String,List<String>>(ipHashes[i][2],new ArrayList<>());
+                while(st.hasMoreTokens()){
+                    currentEntry.getValue().add(st.nextToken());
+                }
+                OtherKeys.add(currentEntry);
+            }
+        }
+        System.out.println(Keys);
+        System.out.println(OtherKeys.get(0).getKey()+" : "+OtherKeys.get(0).getValue());
+        System.out.println(OtherKeys.get(1).getKey()+" : "+OtherKeys.get(1).getValue());
+    }
+
+
     public String calculateHash(String message) {//hashing function
         MessageDigest md5 = null;
         try {
@@ -58,10 +147,10 @@ public class Broker implements Node, Runnable {
         md5.update((message).getBytes());
         byte[] md=md5.digest();
         BigInteger big= new BigInteger(1,md);
-        String Hash=big.toString(16);
-        while(Hash.length()<32){
-            Hash+="0";
-        }
+        String Hash=big.toString();
+//        while(Hash.length()<32){
+//            Hash+="0";
+//        }
         return Hash;
     }
 
@@ -128,17 +217,32 @@ public class Broker implements Node, Runnable {
     public void init(int port) {
         try {
             providerSocket = new ServerSocket(port);
+            ServerSocket testSocket=new ServerSocket(4322);
             Enumeration<NetworkInterface> e = NetworkInterface.getNetworkInterfaces(); //we need to find our local IP
             // and linux systems do not share theirs directly
             // via ServerSocket.getInetAddress,
             // so the following thing is necessary
+            try(final DatagramSocket socket = new DatagramSocket()){
+                socket.connect(InetAddress.getByName("8.8.8.8"), 10002);
+                System.out.println(socket.getLocalAddress().getHostAddress());
+            }
+            System.out.println(getIPv4InetAddress());
             boolean flag = false;
             while (e.hasMoreElements()) { //scanning all network Interface
-                NetworkInterface ni = e.nextElement(); 
+                NetworkInterface ni = e.nextElement();
                 Enumeration<InetAddress> IPs = ni.getInetAddresses();
                 while (IPs.hasMoreElements()) {
                     InetAddress currentIP = IPs.nextElement();
                     if (!currentIP.isLoopbackAddress() && currentIP instanceof Inet4Address) { //the first non-loopback IPv4 address is the one we need
+                        try{
+                            Socket soc=new Socket(currentIP,4322);
+                            soc.close();
+                            testSocket.close();
+                            System.out.println("try");
+                        }catch (IOException e1){
+                            System.out.println("catch");
+                            continue;
+                        }
                         this.ipAddress = currentIP;
                         flag = true;
                         break;
@@ -157,6 +261,27 @@ public class Broker implements Node, Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        distributeKeys();
+    }
+
+    static private InetAddress getIPv4InetAddress() throws SocketException, UnknownHostException {
+
+        String os = System.getProperty("os.name").toLowerCase();
+
+        if(os.indexOf("nix") >= 0 || os.indexOf("nux") >= 0) {
+            NetworkInterface ni = NetworkInterface.getByName("eth0");
+
+            Enumeration<InetAddress> ias = ni.getInetAddresses();
+
+            InetAddress iaddress;
+            do {
+                iaddress = ias.nextElement();
+            } while(!(iaddress instanceof Inet4Address));
+
+            return iaddress;
+        }
+
+        return InetAddress.getLocalHost();  // for Windows and OS X it should work well
     }
 
     @Override
