@@ -13,7 +13,7 @@ public class BrokerRequest implements Runnable{
     private Socket connectionSocket;
     private List<String> Keys;
     List<Map.Entry<String,List<String>>> AllKeys;
-    List<Map.Entry<Topic, List<Value>>> Buffer;
+    static List<Map.Entry<Topic, List<Value>>> Buffer;
 
     public BrokerRequest(Socket socket, List<String> Keys, List<Map.Entry<String,List<String>>> AllKeys, List<Map.Entry<Topic, List<Value>>> Buffer){
         this.connectionSocket= socket;
