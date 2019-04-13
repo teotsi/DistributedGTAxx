@@ -17,7 +17,7 @@ public class Publisher implements Node, Runnable, Serializable {
     Socket connectionSocket;
     ObjectOutputStream out;
     ObjectInputStream in;
-    String busLine;
+    Topic busLine;
     String[] busLineInfo;
     List<Bus> ListOfBuses = new ArrayList<Bus>();
     String[] Vehicles;
@@ -31,7 +31,7 @@ public class Publisher implements Node, Runnable, Serializable {
     public void init(int port) {
         System.out.println("sync starts");
         this.busLineInfo = Reader.getBus();
-        this.busLine = this.busLineInfo[1];
+        this.busLine = new Topic(this.busLineInfo[1]);
         Reader.createBusesMap();// TODO na mpei sthn main
         Reader.createRoutesNinfo();//TODO na mpei sthn main
         int numofbuses = Reader.getNumberOfBuses(busLineInfo[0]);
@@ -43,8 +43,7 @@ public class Publisher implements Node, Runnable, Serializable {
         System.out.println("sync done");
         try {
             int randomBroker = new Random().nextInt(3);
-          //TODO  connectionSocket = new Socket(brokers.get(randomBroker).getIpAddress(),port); //connecting to get key info
-            connectionSocket = new Socket(InetAddress.getByName("127.0.0.1"), port); //initialising client
+            connectionSocket = new Socket(brokers.get(randomBroker).getIpAddress(),port); //connecting to get key info
             System.out.println("after connection Socket");
         } catch (IOException e) {
             e.printStackTrace();
@@ -123,10 +122,16 @@ public class Publisher implements Node, Runnable, Serializable {
     public void run() {
         init(4321);
         connect();
+        try {
+            out.writeObject(busLine.getBusLine()+"p");
+            out.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         System.out.println("before push");
         for (Value v : Values) {
             try {
-                push(new Topic(busLine), v);
+                push(busLine, v);
             } catch (IOException e) {
                 if (e instanceof SocketException) {
                     if (e.getMessage().contains("Connection reset")) {

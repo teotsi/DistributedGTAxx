@@ -217,77 +217,24 @@ public class Broker implements Node, Runnable {
     public void init(int port) {
         try {
             providerSocket = new ServerSocket(port);
-            ServerSocket testSocket=new ServerSocket(4322);
-            Enumeration<NetworkInterface> e = NetworkInterface.getNetworkInterfaces(); //we need to find our local IP
             // and linux systems do not share theirs directly
             // via ServerSocket.getInetAddress,
             // so the following thing is necessary
-            try(final DatagramSocket socket = new DatagramSocket()){
-                socket.connect(InetAddress.getByName("8.8.8.8"), 10002);
-                System.out.println(socket.getLocalAddress().getHostAddress());
-            }
-            boolean flag = false;
-            while (e.hasMoreElements()) { //scanning all network Interface
-                NetworkInterface ni = e.nextElement();
-                Enumeration<InetAddress> IPs = ni.getInetAddresses();
-                while (IPs.hasMoreElements()) {
-                    InetAddress currentIP = IPs.nextElement();
-                    if (!currentIP.isLoopbackAddress() && currentIP instanceof Inet4Address) { //the first non-loopback IPv4 address is the one we need
-                        try{
-                            Socket soc=new Socket(currentIP,4322);
-                            soc.close();
-                            testSocket.close();
-                            System.out.println("try");
-                        }catch (IOException e1){
-                            System.out.println("catch");
-                            continue;
-                        }
-                        this.ipAddress = currentIP;
-                        flag = true;
-                        break;
-                    }
-                }
-                if (flag) break;
-            }
-            Broker brokerToRemove = null; //broker removes itself from his list
-            for (Broker b : brokers) {
-                if (b.getIpAddress().equals(this.getIpAddress())) {
-                    brokerToRemove = b;
-                    break;
-                }
-            }
-            brokers.remove(brokerToRemove);
+            final DatagramSocket socket = new DatagramSocket();
+            socket.connect(InetAddress.getByName("8.8.8.8"), 10002);
+            System.out.println(socket.getLocalAddress().getHostAddress());
+            this.ipAddress=socket.getLocalAddress();
         } catch (IOException e) {
             e.printStackTrace();
         }
         distributeKeys();
     }
 
-    static private InetAddress getIPv4InetAddress() throws SocketException, UnknownHostException {
-
-        String os = System.getProperty("os.name").toLowerCase();
-
-        if(os.indexOf("nix") >= 0 || os.indexOf("nux") >= 0) {
-            NetworkInterface ni = NetworkInterface.getByName("eth0");
-
-            Enumeration<InetAddress> ias = ni.getInetAddresses();
-
-            InetAddress iaddress;
-            do {
-                iaddress = ias.nextElement();
-            } while(!(iaddress instanceof Inet4Address));
-
-            return iaddress;
-        }
-
-        return InetAddress.getLocalHost();  // for Windows and OS X it should work well
-    }
-
     @Override
     public void connect() {
         try {
             connection = providerSocket.accept(); 
-            new Thread(new BrokerRequest(connection)).start();//handling connection into a new thread
+            new Thread(new BrokerRequest(connection, Keys)).start();//handling connection into a new thread
         } catch (IOException e) {
             e.printStackTrace();
         }

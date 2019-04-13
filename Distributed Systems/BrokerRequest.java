@@ -2,12 +2,15 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.List;
 
 public class BrokerRequest implements Runnable{
     private int port;
     private Socket connectionSocket;
-    public BrokerRequest(Socket socket){
+    private List<String> Keys;
+    public BrokerRequest(Socket socket, List<String> Keys){
         this.connectionSocket= socket;
+        this.Keys=Keys;
     }
 
     public synchronized boolean pull(Topic t, ObjectInputStream in) {
@@ -43,6 +46,14 @@ public class BrokerRequest implements Runnable{
         ObjectOutputStream out = new ObjectOutputStream(connectionSocket.getOutputStream());
         System.out.println("after out");
         ObjectInputStream in = new ObjectInputStream(connectionSocket.getInputStream());
+        String message=(String)in.readObject();
+        if (message.contains("p")){
+            if(Keys.contains(message.substring(message.length()-1))){
+
+            }
+        }else{
+
+        }
         boolean bool;
         do{
            bool=pull(new Topic("021"), in);
@@ -50,6 +61,8 @@ public class BrokerRequest implements Runnable{
         in.close();
         out.close();
     }catch(IOException e){
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
     }

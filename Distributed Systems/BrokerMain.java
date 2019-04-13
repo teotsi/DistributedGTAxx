@@ -5,11 +5,10 @@ public class BrokerMain {
     public static void main(String[] args) {
         try {
             Broker currentServer = new Broker(Reader.getBrokerList("brokerIPs.txt"),"busLinesNew.txt", InetAddress.getLocalHost(), true);
-            currentServer.init(4321);
-            while (true) {
+            while(true){
                 currentServer.connect();
-                new Thread(currentServer).start();
             }
+            //currentServer.init(4321);
         } catch (IOException e) {
             System.out.println("Error with server. Is the port available?");
             System.exit(1);
