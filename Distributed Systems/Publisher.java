@@ -34,8 +34,6 @@ public class Publisher implements Node, Runnable, Serializable {
         System.out.println("sync starts");
         this.busLineInfo = Reader.getBus();
         this.busLine = new Topic(this.busLineInfo[1]);
-        Reader.createBusesMap();// TODO na mpei sthn main
-        Reader.createRoutesNinfo();//TODO na mpei sthn main
         int numofbuses = Reader.getNumberOfBuses(busLineInfo[0]);
         this.Vehicles = Reader.getVehicles(busLineInfo[0], numofbuses);
         for (int i = 0; i < numofbuses; i++) {
@@ -52,7 +50,7 @@ public class Publisher implements Node, Runnable, Serializable {
         }
     }
 
-    public void createValues() { //TODO na to trexei ka8e publisher
+    public void createValues() {
         List<String[]> table = Reader.getPositionTable();
         for (String[] line : table) {
             for (Bus b : ListOfBuses) {

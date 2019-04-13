@@ -219,7 +219,7 @@ public class Broker implements Node{
     public void connect() {
         try {
             connection = providerSocket.accept();
-            new Thread(new BrokerRequest(connection, Keys, AllKeys)).start();//handling connection into a new thread
+            new Thread(new BrokerRequest(connection, Keys, AllKeys, Buffer)).start();//handling connection into a new thread
         } catch (IOException e) {
             e.printStackTrace();
         }

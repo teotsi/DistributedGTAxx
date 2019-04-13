@@ -33,13 +33,12 @@ public class Subscriber implements Node {
 
     public boolean pull(ObjectInputStream in) {
         try {
-            Topic tr = (Topic) in.readObject();
             Value vr = (Value) in.readObject();
             if (vr == null) {
                 System.out.println("found null");
                 return false;
             }
-            visualiseData(tr, vr);
+            visualiseData(vr);
         } catch (IOException e) {
             if (e.getMessage().contains("Connection reset")) {
                 System.out.println("Connection reset. Subscriber may be down.");
@@ -59,8 +58,8 @@ public class Subscriber implements Node {
     public void disconnect(Broker b, Topic t) {
     }
 
-    public void visualiseData(Topic t, Value v) {
-        System.out.println("New position! " + t.getBusLine() + " is at" + v.getLatitude() + ", " + v.getLongitude());
+    public void visualiseData( Value v) {
+        System.out.println("New position! " + currentLine + " is at" + v.getLatitude() + ", " + v.getLongitude());
     }
 
     @Override
