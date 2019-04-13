@@ -73,19 +73,21 @@ public class BrokerRequest implements Runnable{
             if(Keys.contains(message)){
                 out.writeObject(true);
                 out.flush();
-                for(Map.Entry<Topic, List<Value>> e: Buffer){
-                    if(e.getKey().equals(topic)){
-                        for(Iterator<Value> v= e.getValue().iterator(); v.hasNext();){
-                            Value v1=v.next();
-                            out.writeObject(v1);
-                            out.flush();
+                synchronized (Buffer) {
+                    for (Map.Entry<Topic, List<Value>> e : Buffer) {
+                        if (e.getKey().equals(topic)) {
+                            for (Iterator<Value> v = e.getValue().iterator(); v.hasNext(); ) {
+                                Value v1 = v.next();
+                                out.writeObject(v1);
+                                out.flush();
 //                            if(v==null){
 //                                System.out.println("v is null");
 //                            }
-                            sleep(100);
+                                sleep(100);
+                            }
                         }
-                    }
 
+                    }
                 }
             }else{
                 out.writeObject(false);
