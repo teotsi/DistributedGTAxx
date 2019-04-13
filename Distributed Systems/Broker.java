@@ -226,7 +226,6 @@ public class Broker implements Node, Runnable {
                 socket.connect(InetAddress.getByName("8.8.8.8"), 10002);
                 System.out.println(socket.getLocalAddress().getHostAddress());
             }
-            System.out.println(getIPv4InetAddress());
             boolean flag = false;
             while (e.hasMoreElements()) { //scanning all network Interface
                 NetworkInterface ni = e.nextElement();
