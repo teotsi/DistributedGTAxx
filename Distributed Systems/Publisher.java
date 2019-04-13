@@ -144,6 +144,7 @@ public class Publisher implements Node, Runnable, Serializable {
                 for (Value v : Values) {
                     try {
                         push(busLine, v);
+                        sleep(100);
                     } catch (IOException e) {
                         if (e instanceof SocketException) {
                             if (e.getMessage().contains("Connection reset")) {
@@ -153,6 +154,8 @@ public class Publisher implements Node, Runnable, Serializable {
                             break;
                         }
                         e.printStackTrace();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
                     }
                     try {
                         sleep(50);
@@ -160,6 +163,7 @@ public class Publisher implements Node, Runnable, Serializable {
                         e.printStackTrace();
                     }
                 }
+                wrongBroker=false;
             } else {// if not
                 for (int i = 0; i < 3; i++) {
                     System.out.println("wtf");
