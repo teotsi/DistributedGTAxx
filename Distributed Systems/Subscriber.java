@@ -12,32 +12,35 @@ public class Subscriber implements Node {
     ObjectOutputStream out;
     ObjectInputStream in;
     String currentLine;
-    private List<Map.Entry<String,List<String>>> OtherKeys;
+    private List<Map.Entry<String, List<String>>> OtherKeys;
 
     public Subscriber(List<Broker> brokers) {
-        this.brokers.addAll(Reader.getBrokerList(PATH+"brokerIPs.txt"));
+        this.brokers.addAll(Reader.getBrokerList(PATH + "brokerIPs.txt"));
         Scanner in = new Scanner(System.in);
-        System.out.print("Enter bus line:");
-        String input = in.next();
-        while(input.length()!=3){
-            System.out.print("\nInvalid bus! Retry: ");
-            input= in.next();
+        while (true) {
+            System.out.print("Enter bus line:");
+            String input = in.next().trim();
+            while (input.length() != 3) {
+                System.out.print("\nInvalid bus! Retry: ");
+                input = in.next();
+            }
+            this.currentLine = input;
+            init(4321);
+            connect();
         }
-        this.currentLine = input;
-        init(4321);
-        connect();
     }
+
     public boolean pull(ObjectInputStream in) {
         try {
-            Topic tr= (Topic) in.readObject();
+            Topic tr = (Topic) in.readObject();
             Value vr = (Value) in.readObject();
-            if(vr==null){
+            if (vr == null) {
                 System.out.println("found null");
                 return false;
             }
             visualiseData(tr, vr);
         } catch (IOException e) {
-            if(e.getMessage().contains("Connection reset")){
+            if (e.getMessage().contains("Connection reset")) {
                 System.out.println("Connection reset. Subscriber may be down.");
                 return false;
             }
@@ -47,6 +50,7 @@ public class Subscriber implements Node {
         }
         return true;
     }
+
     public void register(Broker b, Topic t) {
 
     }
@@ -55,14 +59,14 @@ public class Subscriber implements Node {
     }
 
     public void visualiseData(Topic t, Value v) throws IOException, ClassNotFoundException {
-        System.out.println();
+        System.out.println("New position! " + t.getBusLine() + " is at" + v.getLatitude() + ", " + v.getLongitude());
     }
 
     @Override
     public void init(int port) {
         try {
             int randomBroker = new Random().nextInt(3);
-            socket = new Socket(brokers.get(randomBroker).getIpAddress(),port); //connecting to get key info
+            socket = new Socket(brokers.get(randomBroker).getIpAddress(), port); //connecting to get key info
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -77,11 +81,15 @@ public class Subscriber implements Node {
             out.flush();
             OtherKeys = (List<Map.Entry<String, List<String>>>) in.readObject();
             boolean hasKey = (boolean) in.readObject();
-            if(hasKey){
+            if (hasKey) {
                 boolean bool;
-                do{
-                    bool=pull(in);
-                }while(bool);
+                do {
+                    bool = pull(in);
+                } while (bool);
+                System.out.println("No more location data for this bus!");
+                disconnect();
+            } else {
+
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -92,7 +100,13 @@ public class Subscriber implements Node {
 
     @Override
     public void disconnect() {
-
+        try {
+            in.close();
+            out.close();
+            socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
