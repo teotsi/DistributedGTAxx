@@ -5,6 +5,8 @@ import java.net.Socket;
 import java.util.List;
 import java.util.Map;
 
+import static java.lang.Thread.sleep;
+
 public class BrokerRequest implements Runnable{
     private int port;
     private Socket connectionSocket;
@@ -75,6 +77,10 @@ public class BrokerRequest implements Runnable{
                         for(Value v: e.getValue()){
                             out.writeObject(v);
                             out.flush();
+                            if(v==null){
+                                System.out.println("v is null");
+                            }
+                            sleep(100);
                         }
                     }
 
@@ -93,6 +99,8 @@ public class BrokerRequest implements Runnable{
     }catch(IOException e){
             e.printStackTrace();
         } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
