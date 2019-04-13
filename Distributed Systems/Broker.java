@@ -1,3 +1,5 @@
+import com.sun.org.apache.bcel.internal.generic.ALOAD;
+
 import java.io.*;
 import java.math.BigInteger;
 import java.net.*;
@@ -15,7 +17,7 @@ public class Broker implements Node, Runnable {
     private static String[][] Hashes=new String[3][2]; //contains all broker IPs and their md5 hashes 
     private static String[][] IDHashes;
     private static List<String> Keys=new ArrayList<String>(); //contains all keys current broker is responsible for
-    private List<Map.Entry<String,List<String>>> OtherKeys=new ArrayList<>();//contains the other keys
+    private List<Map.Entry<String,List<String>>> AllKeys=new ArrayList<>();//contains all the keys
 
     private InetAddress ipAddress;
     private ServerSocket providerSocket;
@@ -117,23 +119,27 @@ public class Broker implements Node, Runnable {
 
         }
         for (int i = 0; i <3; i++) {
-            StringTokenizer st=new StringTokenizer(ipHashes[i][1]);
+            StringTokenizer st=new StringTokenizer(ipHashes[i][1],",");
             System.out.println(ipAddress.getHostAddress());
             if (ipHashes[i][2].equals(ipAddress.getHostAddress())){
+                Map.Entry<String, List<String>> currentEntry= new AbstractMap.SimpleEntry<String,List<String>>(ipHashes[i][2],new ArrayList<>());
                 while(st.hasMoreTokens()){
-                    Keys.add(st.nextToken());
+                    String t=st.nextToken();
+                    Keys.add(t);
+                    currentEntry.getValue().add(t);
                 }
+                AllKeys.add(currentEntry);
             }else{
                 Map.Entry<String, List<String>> currentEntry= new AbstractMap.SimpleEntry<String,List<String>>(ipHashes[i][2],new ArrayList<>());
                 while(st.hasMoreTokens()){
                     currentEntry.getValue().add(st.nextToken());
                 }
-                OtherKeys.add(currentEntry);
+                AllKeys.add(currentEntry);
             }
         }
         System.out.println(Keys);
-        System.out.println(OtherKeys.get(0).getKey()+" : "+OtherKeys.get(0).getValue());
-        System.out.println(OtherKeys.get(1).getKey()+" : "+OtherKeys.get(1).getValue());
+        System.out.println(AllKeys.get(0).getKey()+" : "+ AllKeys.get(0).getValue());
+        System.out.println(AllKeys.get(1).getKey()+" : "+AllKeys.get(1).getValue());
     }
 
 
@@ -234,7 +240,7 @@ public class Broker implements Node, Runnable {
     public void connect() {
         try {
             connection = providerSocket.accept(); 
-            new Thread(new BrokerRequest(connection, Keys)).start();//handling connection into a new thread
+            new Thread(new BrokerRequest(connection, Keys, AllKeys)).start();//handling connection into a new thread
         } catch (IOException e) {
             e.printStackTrace();
         }

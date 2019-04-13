@@ -9,6 +9,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import static java.lang.Thread.sleep;
@@ -22,6 +23,7 @@ public class Publisher implements Node, Runnable, Serializable {
     List<Bus> ListOfBuses = new ArrayList<Bus>();
     String[] Vehicles;
     List<Value> Values = new ArrayList<Value>();
+    List<Map.Entry<String,List<String>>> Keys = new ArrayList<>();// contains all the ips and their keys
 
     public Publisher(List<Broker> brokers) {
         this.brokers.addAll(Reader.getBrokerList(PATH+"brokerIPs.txt"));
@@ -61,7 +63,6 @@ public class Publisher implements Node, Runnable, Serializable {
             }
         }
         Values.add(null);
-        System.out.println(Values.size() + "THE SIZE OF VALUE");
     }
 
 
@@ -80,6 +81,8 @@ public class Publisher implements Node, Runnable, Serializable {
     @Override
     public void disconnect() {
         try {
+            in.close();
+            out.close();
             connectionSocket.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -121,34 +124,59 @@ public class Publisher implements Node, Runnable, Serializable {
     @Override
     public void run() {
         init(4321);
-        connect();
-        try {
-            out.writeObject(busLine.getBusLine()+"p");
-            out.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        System.out.println("before push");
-        for (Value v : Values) {
+        boolean wrongBroker=true;
+        do {
+            connect();
+            boolean rightBroker = false;
             try {
-                push(busLine, v);
+                out.writeObject(busLine.getBusLine() + "p");
+                out.flush();
+                List<Map.Entry<String, List<String>>> AllKeys = (List<Map.Entry<String, List<String>>>) in.readObject();
+                this.Keys = AllKeys;
+                rightBroker = (boolean) in.readObject();//reading the message of the broker saying if his is the correct one
             } catch (IOException e) {
-                if (e instanceof SocketException) {
-                    if (e.getMessage().contains("Connection reset")) {
-                        System.out.println("Connection reset, broker may be down.");
-                    } else {
-                        System.out.println("Connection denied, probably wrong topic.");
+                e.printStackTrace();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+            System.out.println("before push");
+            if (rightBroker) {//if he is in the right broker
+                for (Value v : Values) {
+                    try {
+                        push(busLine, v);
+                    } catch (IOException e) {
+                        if (e instanceof SocketException) {
+                            if (e.getMessage().contains("Connection reset")) {
+                                System.out.println("Connection reset, broker may be down.");
+                            }
+                            wrongBroker=true;
+                            break;
+                        }
+                        e.printStackTrace();
                     }
-                    break;
+                    try {
+                        sleep(50);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
-                e.printStackTrace();
+            } else {// if not
+                for (int i = 0; i < 3; i++) {
+                    System.out.println("wtf");
+                    System.out.println(Keys.get(i));
+                    if (Keys.get(i).getValue().contains(busLine.getBusLine())) {
+                        try {
+                            disconnect();
+                            connectionSocket = new Socket(InetAddress.getByName(Keys.get(i).getKey()), 4321);
+                            wrongBroker=true;
+                            break;
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
             }
-            try {
-                sleep(50);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
+        }while(wrongBroker);
         while (true) {
         }
     }
