@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.util.List;
 import java.util.Map;
@@ -12,7 +13,7 @@ public class Subscriber implements Node {
     ObjectOutputStream out;
     ObjectInputStream in;
     String currentLine;
-    private List<Map.Entry<String, List<String>>> OtherKeys;
+    private List<Map.Entry<String, List<String>>> AllKeys;// contains all the ips and heir keys
 
     public Subscriber(List<Broker> brokers) {
         this.brokers.addAll(Reader.getBrokerList(PATH + "brokerIPs.txt"));
@@ -58,7 +59,7 @@ public class Subscriber implements Node {
     public void disconnect(Broker b, Topic t) {
     }
 
-    public void visualiseData(Topic t, Value v) throws IOException, ClassNotFoundException {
+    public void visualiseData(Topic t, Value v) {
         System.out.println("New position! " + t.getBusLine() + " is at" + v.getLatitude() + ", " + v.getLongitude());
     }
 
@@ -74,28 +75,43 @@ public class Subscriber implements Node {
 
     @Override
     public void connect() {
-        try {
-            in = new ObjectInputStream(socket.getInputStream());
-            out = new ObjectOutputStream(socket.getOutputStream());
-            out.writeObject(this.currentLine); //asking broker for list + if he's responsible for this key
-            out.flush();
-            OtherKeys = (List<Map.Entry<String, List<String>>>) in.readObject();
-            boolean hasKey = (boolean) in.readObject();
-            if (hasKey) {
-                boolean bool;
-                do {
-                    bool = pull(in);
-                } while (bool);
-                System.out.println("No more location data for this bus!");
-                disconnect();
-            } else {
-
+        boolean wrongBroker=true;
+        do {
+            try {
+                in = new ObjectInputStream(socket.getInputStream());
+                out = new ObjectOutputStream(socket.getOutputStream());
+                out.writeObject(this.currentLine); //asking broker for list + if he's responsible for this key
+                out.flush();
+                AllKeys = (List<Map.Entry<String, List<String>>>) in.readObject();//reading the message of the broker saying if his is the correct one
+                boolean hasKey = (boolean) in.readObject();
+                if (hasKey) {
+                    boolean bool;
+                    do {
+                        bool = pull(in);
+                    } while (bool);
+                    System.out.println("No more location data for this bus!");
+                    disconnect();
+                    wrongBroker=false;
+                } else {
+                    for (int i = 0; i < 3; i++) {
+                        if (AllKeys.get(i).getValue().contains(currentLine)) {
+                            try {
+                                disconnect();
+                                socket = new Socket(InetAddress.getByName(AllKeys.get(i).getKey()), 4321);
+                                wrongBroker = true;
+                                break;
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
+        }while(wrongBroker);
     }
 
     @Override

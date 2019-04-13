@@ -157,11 +157,6 @@ public class Publisher implements Node, Runnable, Serializable {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    try {
-                        sleep(50);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
                 }
                 wrongBroker=false;
             } else {// if not
