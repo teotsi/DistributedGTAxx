@@ -5,6 +5,7 @@ import java.net.Socket;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import static java.lang.Thread.sleep;
 
@@ -13,9 +14,9 @@ public class BrokerRequest implements Runnable{
     private Socket connectionSocket;
     private List<String> Keys;
     List<Map.Entry<String,List<String>>> AllKeys;
-    static List<Map.Entry<Topic, List<Value>>> Buffer;
+    static List<Map.Entry<Topic, CopyOnWriteArrayList<Value>>> Buffer;
 
-    public BrokerRequest(Socket socket, List<String> Keys, List<Map.Entry<String,List<String>>> AllKeys, List<Map.Entry<Topic, List<Value>>> Buffer){
+    public BrokerRequest(Socket socket, List<String> Keys, List<Map.Entry<String,List<String>>> AllKeys, List<Map.Entry<Topic, CopyOnWriteArrayList<Value>>> Buffer){
         this.connectionSocket= socket;
         this.Keys=Keys;
         this.AllKeys=AllKeys;
@@ -74,7 +75,7 @@ public class BrokerRequest implements Runnable{
                 out.writeObject(true);
                 out.flush();
                 synchronized (Buffer) {
-                    for (Map.Entry<Topic, List<Value>> e : Buffer) {
+                    for (Map.Entry<Topic, CopyOnWriteArrayList<Value>> e : Buffer) {
                         if (e.getKey().equals(topic)) {
                             for (Iterator<Value> v = e.getValue().iterator(); v.hasNext(); ) {
                                 Value v1 = v.next();

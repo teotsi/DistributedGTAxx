@@ -30,6 +30,11 @@ public class testHashes {
             ipHashes[i][0] = new BigInteger(ipHashes[i][0]).mod(BigInteger.valueOf(MOD)).toString();
         }
 
+        Reader.sort2D(busLinesHash,1);
+        for (int i = 0; i < 20; i++) {
+            System.out.println(busLinesHash[i][0]);
+        }
+
         Arrays.sort(ipHashes, (entry1, entry2) -> { //lambda expression for sorting 2d arrays
             final int hash1 = Integer.parseInt(entry1[0]);
             final int hash2 = Integer.parseInt(entry2[0]);

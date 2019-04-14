@@ -1,9 +1,13 @@
-import java.io.*;
+import java.io.IOException;
 import java.math.BigInteger;
-import java.net.*;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 
 public class Broker implements Node{
@@ -11,7 +15,7 @@ public class Broker implements Node{
     private static int p = 4321; //port
     private List<Subscriber> registeredSubscribers;
     private List<Publisher> registeredPublishers;
-    private static List<Map.Entry<Topic, List<Value>>> Buffer = new ArrayList<Map.Entry<Topic, List<Value>>>(); //contains all the buses from busPositionNew.txt that belongs to the broker.
+    private static CopyOnWriteArrayList<Map.Entry<Topic, CopyOnWriteArrayList<Value>>> Buffer = new CopyOnWriteArrayList<>(); //contains all the buses from busPositionNew.txt that belongs to the broker.
     private static String[][] Hashes = new String[3][2]; //contains all broker IPs and their md5 hashes
     private static String[][] IDHashes;
     private static List<String> Keys = new ArrayList<String>(); //contains all keys current broker is responsible for
@@ -71,19 +75,8 @@ public class Broker implements Node{
             ipHashes[i][0] = new BigInteger(ipHashes[i][0]).mod(BigInteger.valueOf(MOD)).toString();
         }
 
-        Arrays.sort(ipHashes, (entry1, entry2) -> { //lambda expression for sorting 2d arrays
-            final int hash1 = Integer.parseInt(entry1[0]);
-            final int hash2 = Integer.parseInt(entry2[0]);
-            return hash1 - hash2;
-        });
-        Arrays.sort(busLinesHash, (entry1, entry2) -> { //same
-            final int hash1 = Integer.parseInt(entry1[1]);
-            final int hash2 = Integer.parseInt(entry2[1]);
-            return hash1 - hash2;
-        });
-//        for (int i = 0; i < 20; i++) {
-//            System.out.println("line " + busLinesHash[i][0] + ", hash=" + busLinesHash[i][1]);
-//        }
+        Reader.sort2D(ipHashes,0);
+        Reader.sort2D(busLinesHash, 1);
         System.out.println("ip hashes");
         for (int i = 0; i < 3; i++) {
             System.out.println(ipHashes[i][2] + ": " + ipHashes[i][0]);
@@ -169,14 +162,14 @@ public class Broker implements Node{
 
     public static void addToBuffer(Topic t, Value v) {
         boolean flag = true;
-        for (Map.Entry<Topic, List<Value>> e : Buffer) {
+        for (Map.Entry<Topic, CopyOnWriteArrayList<Value>> e : Buffer) {
             if (e.getKey().equals(t)) {
                 e.getValue().add(v);
                 flag = false;
             }
         }
         if (flag) {
-            Map.Entry<Topic, List<Value>> entry = new AbstractMap.SimpleEntry<Topic, List<Value>>(t, new ArrayList<Value>());
+            Map.Entry<Topic, CopyOnWriteArrayList<Value>> entry = new AbstractMap.SimpleEntry<Topic, CopyOnWriteArrayList<Value>>(t, new CopyOnWriteArrayList<Value>());
             entry.getValue().add(v);
             Buffer.add(entry);
         }

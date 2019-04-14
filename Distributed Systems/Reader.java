@@ -175,5 +175,12 @@ public class Reader {
         }
     }
 
+    public static void sort2D(String[][] array,int column){
+        Arrays.sort(array, (entry1, entry2) -> { //lambda expression for sorting 2d arrays
+            final int hash1 = Integer.parseInt(entry1[column]);
+            final int hash2 = Integer.parseInt(entry2[column]);
+            return hash1 - hash2;
+        });
+    }
 
 }
