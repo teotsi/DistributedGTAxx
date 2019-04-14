@@ -123,7 +123,11 @@ public class BrokerRequest implements Runnable{
         in.close();
         out.close();
     }catch(IOException | ClassNotFoundException | InterruptedException e){
-            e.printStackTrace();
+            if(e instanceof SocketException){
+                System.out.println("Socket closed");
+            }else{
+                e.printStackTrace();
+            }
         }
     }
 }
