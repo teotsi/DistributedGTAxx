@@ -2,7 +2,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -13,8 +12,8 @@ public class BrokerRequest implements Runnable{
     private int port;
     private Socket connectionSocket;
     private List<String> Keys;
-    List<Map.Entry<String,List<String>>> AllKeys;
-    static List<Map.Entry<Topic, CopyOnWriteArrayList<Value>>> Buffer;
+    private List<Map.Entry<String,List<String>>> AllKeys;
+    private static List<Map.Entry<Topic, CopyOnWriteArrayList<Value>>> Buffer;
 
     public BrokerRequest(Socket socket, List<String> Keys, List<Map.Entry<String,List<String>>> AllKeys, List<Map.Entry<Topic, CopyOnWriteArrayList<Value>>> Buffer){
         this.connectionSocket= socket;
@@ -76,8 +75,7 @@ public class BrokerRequest implements Runnable{
                 out.flush();
                     for (Map.Entry<Topic, CopyOnWriteArrayList<Value>> e : Buffer) {
                         if (e.getKey().equals(topic)) {
-                            for (Iterator<Value> v = e.getValue().iterator(); v.hasNext(); ) {
-                                Value v1 = v.next();
+                            for (Value v1 : e.getValue()) {
                                 out.writeObject(v1);
                                 out.flush();
 //                            if(v==null){
@@ -99,11 +97,7 @@ public class BrokerRequest implements Runnable{
 
         in.close();
         out.close();
-    }catch(IOException e){
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
+    }catch(IOException | ClassNotFoundException | InterruptedException e){
             e.printStackTrace();
         }
     }

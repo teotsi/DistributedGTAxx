@@ -11,14 +11,14 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 
 public class Broker implements Node{
-
+    final int MOD = 10; //modulo
     private static int p = 4321; //port
     private List<Subscriber> registeredSubscribers;
     private List<Publisher> registeredPublishers;
     private static CopyOnWriteArrayList<Map.Entry<Topic, CopyOnWriteArrayList<Value>>> Buffer = new CopyOnWriteArrayList<>(); //contains all the buses from busPositionNew.txt that belongs to the broker.
     private static String[][] Hashes = new String[3][2]; //contains all broker IPs and their md5 hashes
     private static String[][] IDHashes;
-    private static List<String> Keys = new ArrayList<String>(); //contains all keys current broker is responsible for
+    private static List<String> Keys = new ArrayList<>(); //contains all keys current broker is responsible for
     private List<Map.Entry<String, List<String>>> AllKeys = new ArrayList<>();//contains all the keys
 
     private InetAddress ipAddress;
@@ -50,16 +50,19 @@ public class Broker implements Node{
         }
 
     }
+    private void modMD5(String[][] array, int size, int column){ //applying mod operation to MD5 hashes
+        for (int i = 0; i < size; i++) {
+            array[i][column] = new BigInteger(array[i][column]).mod(BigInteger.valueOf(MOD)).toString();
+        }
+    }
 
     public void distributeKeys() {
-        final int MOD = 10; //modulo
         new Reader("busLinesNew.txt", "busPositionsNew.txt", "RouteCodesNew.txt");
         String[][] busLinesHash = new String[20][2];
         for (int i = 0; i < 20; i++) {
             busLinesHash[i][0] = Reader.getBus()[1];
             busLinesHash[i][1] = calculateHash(busLinesHash[i][0]);
         }
-
         Reader.getBrokerList("brokerIPs.txt");
         List<String> ips = Reader.getIPs();
         String[][] ipHashes = new String[3][3];
@@ -68,20 +71,14 @@ public class Broker implements Node{
             ipHashes[j][1] = "";
             ipHashes[j][2] = ips.get(j);
         }
-        for (int i = 0; i < 20; i++) { //applying mod operation to MD5 Hashes
-            busLinesHash[i][1] = new BigInteger(busLinesHash[i][1]).mod(BigInteger.valueOf(MOD)).toString();
-        }
-        for (int i = 0; i < 3; i++) { //same
-            ipHashes[i][0] = new BigInteger(ipHashes[i][0]).mod(BigInteger.valueOf(MOD)).toString();
-        }
-
+        modMD5(busLinesHash, 20, 1);
+        modMD5(ipHashes, 3, 0);
         Reader.sort2D(ipHashes,0);
         Reader.sort2D(busLinesHash, 1);
-        System.out.println("ip hashes");
-        for (int i = 0; i < 3; i++) {
-            System.out.println(ipHashes[i][2] + ": " + ipHashes[i][0]);
-
+        for (int i = 0; i < 20; i++) {
+            System.out.println(busLinesHash[i][1]);
         }
+        System.out.println("ip hashes");
         int maxIndex; //last element we added. We don't wanna iterate over it again
         for (maxIndex = 0; maxIndex < 20; maxIndex++) { //adding elements to lowest broker
             if (Integer.parseInt(busLinesHash[maxIndex][1]) < Integer.parseInt(ipHashes[0][0])) {
@@ -92,8 +89,7 @@ public class Broker implements Node{
         }
         for (int i = 1; i < 3; i++) {
             for (int j = maxIndex; j < 20; j++) {
-                if (Integer.parseInt(busLinesHash[j][1]) >= Integer.parseInt(ipHashes[i - 1][0]) &&
-                        Integer.parseInt(busLinesHash[j][1]) < Integer.parseInt(ipHashes[i][0])) {
+                if (Integer.parseInt(busLinesHash[j][1]) < Integer.parseInt(ipHashes[i][0])) {
                     ipHashes[i][1] += busLinesHash[j][0] + ",";
                 } else {
                     if (i == 2) {
@@ -113,7 +109,7 @@ public class Broker implements Node{
             StringTokenizer st = new StringTokenizer(ipHashes[i][1], ",");
             System.out.println(ipAddress.getHostAddress());
             if (ipHashes[i][2].equals(ipAddress.getHostAddress())) {
-                Map.Entry<String, List<String>> currentEntry = new AbstractMap.SimpleEntry<String, List<String>>(ipHashes[i][2], new ArrayList<>());
+                Map.Entry<String, List<String>> currentEntry = new AbstractMap.SimpleEntry<>(ipHashes[i][2], new ArrayList<>());
                 while (st.hasMoreTokens()) {
                     String t = st.nextToken();
                     Keys.add(t);
@@ -121,7 +117,7 @@ public class Broker implements Node{
                 }
                 AllKeys.add(currentEntry);
             } else {
-                Map.Entry<String, List<String>> currentEntry = new AbstractMap.SimpleEntry<String, List<String>>(ipHashes[i][2], new ArrayList<>());
+                Map.Entry<String, List<String>> currentEntry = new AbstractMap.SimpleEntry<>(ipHashes[i][2], new ArrayList<>());
                 while (st.hasMoreTokens()) {
                     currentEntry.getValue().add(st.nextToken());
                 }
@@ -134,24 +130,24 @@ public class Broker implements Node{
     }
 
 
-    public String calculateHash(String message) {//hashing function
+    private String calculateHash(String message) {//hashing function
         MessageDigest md5 = null;
         try {
             md5 = MessageDigest.getInstance("MD5"); //using MD5 algorithm
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
+        assert md5 != null;
         md5.update((message).getBytes());
         byte[] md = md5.digest();
         BigInteger big = new BigInteger(1, md);
-        String Hash = big.toString();
-//        while(Hash.length()<32){
+        //        while(Hash.length()<32){
 //            Hash+="0";
 //        }
-        return Hash;
+        return big.toString();
     }
 
-    public String[][] calculateKeys() {
+    private String[][] calculateKeys() {
         String[][] idhases = new String[Reader.IDs(busLinesFileName).size()][2];
         for (int i = 0; i < Reader.IDs(busLinesFileName).size(); i++) {
             idhases[i][0] = Reader.IDs(busLinesFileName).get(i);
@@ -160,7 +156,7 @@ public class Broker implements Node{
         return idhases;
     }
 
-    public static void addToBuffer(Topic t, Value v) {
+    static void addToBuffer(Topic t, Value v) {
         boolean flag = true;
         for (Map.Entry<Topic, CopyOnWriteArrayList<Value>> e : Buffer) {
             if (e.getKey().equals(t)) {
@@ -169,7 +165,7 @@ public class Broker implements Node{
             }
         }
         if (flag) {
-            Map.Entry<Topic, CopyOnWriteArrayList<Value>> entry = new AbstractMap.SimpleEntry<Topic, CopyOnWriteArrayList<Value>>(t, new CopyOnWriteArrayList<Value>());
+            Map.Entry<Topic, CopyOnWriteArrayList<Value>> entry = new AbstractMap.SimpleEntry<>(t, new CopyOnWriteArrayList<>());
             entry.getValue().add(v);
             Buffer.add(entry);
         }
@@ -187,7 +183,7 @@ public class Broker implements Node{
     public void notifyPublisher(String message) {
     }
 
-    public InetAddress getIpAddress() { //returns current broker's IP
+     InetAddress getIpAddress() { //returns current broker's IP
         return ipAddress;
     }
 

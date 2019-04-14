@@ -12,8 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import static java.lang.Thread.sleep;
-
 public class Publisher implements Node, Runnable, Serializable {
     Socket connectionSocket;
     ObjectOutputStream out;
@@ -142,7 +140,6 @@ public class Publisher implements Node, Runnable, Serializable {
                 for (Value v : Values) {
                     try {
                         push(busLine, v);
-                        sleep(100);
                     } catch (IOException e) {
                         if (e instanceof SocketException) {
                             if (e.getMessage().contains("Connection reset")) {
@@ -151,8 +148,6 @@ public class Publisher implements Node, Runnable, Serializable {
                             wrongBroker=true;
                             break;
                         }
-                        e.printStackTrace();
-                    } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }

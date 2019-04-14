@@ -9,8 +9,6 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
 
-import static java.lang.Thread.sleep;
-
 public class Subscriber implements Node {
     Socket socket;
     ObjectOutputStream out;
@@ -42,16 +40,12 @@ public class Subscriber implements Node {
                 return false;
             }
             visualiseData(vr);
+        } catch (EOFException e){
+            return false;
         } catch (IOException e) {
-            if (e.getMessage().contains("Connection reset")) {
+            if(e.getMessage().contains("Connection reset")){
                 System.out.println("Connection reset. Subscriber may be down.");
                 return false;
-            }else if(e instanceof EOFException){
-                try {
-                    sleep(1000);
-                } catch (InterruptedException e1) {
-                    e1.printStackTrace();
-                }
             }
             e.printStackTrace();
         } catch (ClassNotFoundException e) {
