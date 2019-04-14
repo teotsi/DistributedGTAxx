@@ -76,17 +76,32 @@ public class BrokerRequest implements Runnable{
                 out.flush();
                     for (Map.Entry<Topic, CopyOnWriteArrayList<Value>> e : Buffer) {
                         if (e.getKey().equals(topic)) {
-                            for (Value v1 : e.getValue()) {
-                                out.writeObject(v1);
-                                out.flush();
-                                if (v1.getLongitude()==10.0) {
-                                    System.out.println("found null");
+                            int i=0;
+                            List<Value> v1=e.getValue();
+                            while(true){
+                                try {
+                                    out.writeObject(v1.get(i));
+                                    out.flush();
+                                    if (v1.get(i).getLongitude() == 10.0) {
+                                        System.out.println("found null");
+                                    }
+                                    sleep(100);
+                                    i++;
+                                }catch (IndexOutOfBoundsException e1){
+                                    sleep(1000);
                                 }
-//                            if(v==null){
-//                                System.out.println("v is null");
-//                            }
-                                sleep(100);
                             }
+//                            for (Value v1 : e.getValue()) {
+////                                out.writeObject(v1);
+////                                out.flush();
+////                                if (v1.getLongitude()==10.0) {
+////                                    System.out.println("found null");
+////                                }
+//////                            if(v==null){
+//////                                System.out.println("v is null");
+//////                            }
+////                                sleep(100);
+////                            }
                         }
 
                     }

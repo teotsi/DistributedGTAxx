@@ -34,7 +34,7 @@ public class Subscriber implements Node {
         }
     }
 
-    public boolean pull(ObjectInputStream in) {
+    public synchronized boolean pull(ObjectInputStream in) {
         try {
             Value vr = (Value) in.readObject();
             System.out.println(vr);
