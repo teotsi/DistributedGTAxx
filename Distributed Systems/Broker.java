@@ -22,7 +22,7 @@ public class Broker implements Node{
     private List<Map.Entry<String, List<String>>> AllKeys = new ArrayList<>();//contains all the keys
 
     private InetAddress ipAddress;
-    private ServerSocket providerSocket;
+    private ServerSocket providerSocket, emergencyServer;
     private Socket connection;
     private String busLinesFileName;
 
@@ -71,13 +71,10 @@ public class Broker implements Node{
             ipHashes[j][1] = "";
             ipHashes[j][2] = ips.get(j);
         }
-        modMD5(busLinesHash, 20, 1);
+        modMD5(busLinesHash, 20, 1); //getting mod value of MD5 hash
         modMD5(ipHashes, 3, 0);
-        Reader.sort2D(ipHashes,0);
-        Reader.sort2D(busLinesHash, 1);
-        for (int i = 0; i < 20; i++) {
-            System.out.println(busLinesHash[i][1]);
-        }
+        Reader.sort2D(ipHashes,0); //sorting IPs by hash
+        Reader.sort2D(busLinesHash, 1); //sorting bus Lines by hash
         System.out.println("ip hashes");
         int maxIndex; //last element we added. We don't wanna iterate over it again
         for (maxIndex = 0; maxIndex < 20; maxIndex++) { //adding elements to lowest broker
@@ -148,12 +145,12 @@ public class Broker implements Node{
     }
 
     private String[][] calculateKeys() {
-        String[][] idhases = new String[Reader.IDs(busLinesFileName).size()][2];
+        String[][] idHashes = new String[Reader.IDs(busLinesFileName).size()][2];
         for (int i = 0; i < Reader.IDs(busLinesFileName).size(); i++) {
-            idhases[i][0] = Reader.IDs(busLinesFileName).get(i);
-            idhases[i][1] = calculateHash(idhases[i][0]);
+            idHashes[i][0] = Reader.IDs(busLinesFileName).get(i);
+            idHashes[i][1] = calculateHash(idHashes[i][0]);
         }
-        return idhases;
+        return idHashes;
     }
 
     static void addToBuffer(Topic t, Value v) {
@@ -191,6 +188,7 @@ public class Broker implements Node{
     public void init(int port) {
         try {
             providerSocket = new ServerSocket(port);
+            emergencyServer = new ServerSocket(4322);
             // and linux systems do not share theirs directly
             // via ServerSocket.getInetAddress,
             // so the following thing is necessary

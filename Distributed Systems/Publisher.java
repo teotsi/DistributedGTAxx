@@ -5,23 +5,21 @@ import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
 public class Publisher implements Node, Runnable, Serializable {
-    Socket connectionSocket;
-    ObjectOutputStream out;
-    ObjectInputStream in;
-    Topic busLine;
-    String[] busLineInfo;
-    List<Bus> ListOfBuses = new ArrayList<Bus>();
-    String[] Vehicles;
-    List<Value> Values = new ArrayList<Value>();
-    List<Map.Entry<String,List<String>>> Keys = new ArrayList<>();// contains all the ips and their keys
+    private Socket connectionSocket;
+    private ObjectOutputStream out;
+    private ObjectInputStream in;
+    private Topic busLine;
+    private String[] busLineInfo;
+    private List<Bus> ListOfBuses = new ArrayList<>();
+    private String[] Vehicles;
+    private List<Value> Values = new ArrayList<Value>();
+    private List<Map.Entry<String,List<String>>> Keys = new ArrayList<>();// contains all the ips and their keys
 
     public Publisher(List<Broker> brokers) {
         this.brokers.addAll(Reader.getBrokerList(PATH+"brokerIPs.txt"));
@@ -48,7 +46,7 @@ public class Publisher implements Node, Runnable, Serializable {
         }
     }
 
-    public void createValues() {
+    private void createValues() {
         List<String[]> table = Reader.getPositionTable();
         for (String[] line : table) {
             for (Bus b : ListOfBuses) {
@@ -93,18 +91,8 @@ public class Publisher implements Node, Runnable, Serializable {
     public void getBrokerList() {
     }
 
-    public Broker hashTopic(Topic t) {
-        try {
-            MessageDigest md5 = MessageDigest.getInstance("MD5"); //initialising MD5
-            md5.update(t.getBusLine().getBytes()); //hashing
 
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
-        return new Broker(null,null, null, true);
-    }
-
-    public void push(Topic t, Value v) throws IOException {
+    private void push(Topic t, Value v) throws IOException {
         out.writeObject(t);
         out.flush();
         out.writeObject(v);
@@ -127,12 +115,9 @@ public class Publisher implements Node, Runnable, Serializable {
             try {
                 out.writeObject(busLine.getBusLine() + "p");
                 out.flush();
-                List<Map.Entry<String, List<String>>> AllKeys = (List<Map.Entry<String, List<String>>>) in.readObject();
-                this.Keys = AllKeys;
+                this.Keys = (List<Map.Entry<String, List<String>>>) in.readObject();
                 rightBroker = (boolean) in.readObject();//reading the message of the broker saying if his is the correct one
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (ClassNotFoundException e) {
+            } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
             }
             System.out.println("before push");
@@ -145,7 +130,6 @@ public class Publisher implements Node, Runnable, Serializable {
                             if (e.getMessage().contains("Connection reset")) {
                                 System.out.println("Connection reset, broker may be down.");
                             }
-                            wrongBroker=true;
                             break;
                         }
                         e.printStackTrace();

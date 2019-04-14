@@ -8,7 +8,7 @@ public class Reader {
     private static List<String> busLines;
     private static int busCount = 0;
     private static int totalBusLines;
-    private static int ipCount = 0;
+
     private static List<String> ipLines;
     private static List<String> positionLines;
     private static List<String> routeLines;
@@ -28,9 +28,9 @@ public class Reader {
 
     public static List<String> IDs(String busLinesFileName){
         createBusLines(busLinesFileName);
-        List<String> Ids= new ArrayList<String>();
-        for (int i = 0; i < busLines.size(); i++) {
-            StringTokenizer st=new StringTokenizer(busLines.get(i), ",");;
+        List<String> Ids= new ArrayList<>();
+        for (String busLine : busLines) {
+            StringTokenizer st = new StringTokenizer(busLine, ",");
             st.nextToken();
             Ids.add(st.nextToken());
             st.nextToken();
@@ -38,15 +38,14 @@ public class Reader {
         return Ids;
     }
 
-    public static void createBusLines(String busLinesFileName){
+    private static void createBusLines(String busLinesFileName){
         busLines = getFileLines(busLinesFileName);
     }
 
     public static String[] getBus() {
         StringTokenizer st;
         st = new StringTokenizer(busLines.get(busCount++), ",");
-        String[] busLineInfo = {st.nextToken(), st.nextToken(), st.nextToken()};
-        return busLineInfo;
+        return new String[]{st.nextToken(), st.nextToken(), st.nextToken()};
     }
 
     public static String[] getVehicles(String LineCode, int count) {
@@ -67,9 +66,9 @@ public class Reader {
     }
 
     public static void createRoutesNinfo() {
-        for (int i = 0; i < routeLines.size(); i++) {
+        for (String routeLine : routeLines) {
             StringTokenizer st;
-            st = new StringTokenizer(routeLines.get(i), ",");
+            st = new StringTokenizer(routeLine, ",");
             String code = st.nextToken();
             st.nextToken();
             st.nextToken();
@@ -88,9 +87,9 @@ public class Reader {
     }
 
     public static void createBusesMap() {
-        for (int i = 0; i < positionLines.size(); i++) {
+        for (String positionLine : positionLines) {
             StringTokenizer st;
-            st = new StringTokenizer(positionLines.get(i), ",");
+            st = new StringTokenizer(positionLine, ",");
             String code = st.nextToken();
             String route = st.nextToken();
             String vehicleId = st.nextToken();
@@ -132,7 +131,7 @@ public class Reader {
         return busCount < totalBusLines;
     }
 
-    public static List<String> getFileLines(String fileName) {
+    private static List<String> getFileLines(String fileName) {
         List<String> fileLines = new ArrayList<>();
         try {
             Scanner input = new Scanner(new File(PATH+fileName));

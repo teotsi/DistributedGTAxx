@@ -14,8 +14,8 @@ public class Subscriber implements Node {
     ObjectOutputStream out;
     ObjectInputStream in;
     String currentLine;
-    private List<Map.Entry<String, List<String>>> AllKeys;// contains all the ips and heir keys
-
+    private List<Map.Entry<String, List<String>>> AllKeys;// contains all the ips and their keys
+    private InetAddress currentAddress;
     public Subscriber(List<Broker> brokers) {
         this.brokers.addAll(Reader.getBrokerList(PATH + "brokerIPs.txt"));
         Scanner in = new Scanner(System.in);
@@ -44,7 +44,8 @@ public class Subscriber implements Node {
             return false;
         } catch (IOException e) {
             if(e.getMessage().contains("Connection reset")){
-                System.out.println("Connection reset. Subscriber may be down.");
+                System.out.println("Connection reset. Broker may be down.");
+                notifyBrokers();
                 return false;
             }
             e.printStackTrace();
@@ -52,6 +53,23 @@ public class Subscriber implements Node {
             e.printStackTrace();
         }
         return true;
+    }
+
+    private void notifyBrokers() {
+        List<String> orphanKeys = null;
+        for(Map.Entry<String, List<String>> e: AllKeys){
+            if(e.getKey().equals(currentAddress.getHostAddress())){
+                orphanKeys = e.getValue();
+                continue;
+            }
+            try {
+                Socket emergencySocket = new Socket(InetAddress.getByName(e.getKey()), 4322);
+                ObjectOutputStream out = new ObjectOutputStream(emergencySocket.getOutputStream());
+                out.writeObject(orphanKeys);
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+        }
     }
 
     public void register(Broker b, Topic t) {
@@ -100,7 +118,8 @@ public class Subscriber implements Node {
                         if (AllKeys.get(i).getValue().contains(currentLine)) {
                             try {
                                 disconnect();
-                                socket = new Socket(InetAddress.getByName(AllKeys.get(i).getKey()), 4321);
+                                currentAddress = InetAddress.getByName(AllKeys.get(i).getKey());
+                                socket = new Socket(currentAddress, 4321);
                                 wrongBroker = true;
                                 break;
                             } catch (IOException e) {
