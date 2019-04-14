@@ -78,6 +78,9 @@ public class BrokerRequest implements Runnable{
                             for (Value v1 : e.getValue()) {
                                 out.writeObject(v1);
                                 out.flush();
+                                if (v1.getLongitude()==10.0) {
+                                    System.out.println("found null");
+                                }
 //                            if(v==null){
 //                                System.out.println("v is null");
 //                            }
