@@ -1,3 +1,4 @@
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -7,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
+
+import static java.lang.Thread.sleep;
 
 public class Subscriber implements Node {
     Socket socket;
@@ -40,10 +43,16 @@ public class Subscriber implements Node {
             }
             visualiseData(vr);
         } catch (IOException e) {
-//            if (e.getMessage().contains("Connection reset")) {
-//                System.out.println("Connection reset. Subscriber may be down.");
-//                return false;
-//            }
+            if (e.getMessage().contains("Connection reset")) {
+                System.out.println("Connection reset. Subscriber may be down.");
+                return false;
+            }else if(e instanceof EOFException){
+                try {
+                    sleep(1000);
+                } catch (InterruptedException e1) {
+                    e1.printStackTrace();
+                }
+            }
             e.printStackTrace();
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
