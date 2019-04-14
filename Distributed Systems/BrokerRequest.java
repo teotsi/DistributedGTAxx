@@ -74,7 +74,6 @@ public class BrokerRequest implements Runnable{
             if(Keys.contains(message)){
                 out.writeObject(true);
                 out.flush();
-                synchronized (Buffer) {
                     for (Map.Entry<Topic, CopyOnWriteArrayList<Value>> e : Buffer) {
                         if (e.getKey().equals(topic)) {
                             for (Iterator<Value> v = e.getValue().iterator(); v.hasNext(); ) {
@@ -89,7 +88,6 @@ public class BrokerRequest implements Runnable{
                         }
 
                     }
-                }
             }else{
                 out.writeObject(false);
                 out.flush();
