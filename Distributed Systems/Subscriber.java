@@ -45,6 +45,7 @@ public class Subscriber implements Node {
             visualiseData(vr);
         } catch (EOFException e){
             try {
+                System.out.println("sleep");
                 sleep(1000);
             } catch (InterruptedException e1) {
                 e1.printStackTrace();
