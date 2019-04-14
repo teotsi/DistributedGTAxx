@@ -77,6 +77,7 @@ public class BrokerRequest implements Runnable {
                 BrokenKeys.add(message.substring(0, message.length() - 1));
             } else if (message.contains("x")) {//broker failure
                 AllKeys= (List<Map.Entry<String, List<String>>>) in.readObject();
+                System.out.println(AllKeys);
                 System.out.println(Keys);
                 if((boolean)in.readObject()){
                     Keys.addAll((List<String>)in.readObject());

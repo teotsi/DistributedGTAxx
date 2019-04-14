@@ -2,6 +2,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.util.List;
@@ -92,6 +93,8 @@ public class Subscriber implements Node {
         boolean wrongBroker=true;
         do {
             try {
+                System.out.println("before in out");
+                sleep(1000);
                 in = new ObjectInputStream(socket.getInputStream());
                 out = new ObjectOutputStream(socket.getOutputStream());
                 out.writeObject(this.currentLine); //asking broker for list + if he's responsible for this key
@@ -108,15 +111,26 @@ public class Subscriber implements Node {
                     wrongBroker=false;
                 } else if(hasKey==1) {
                     System.out.println("other broker");
+                    System.out.println(AllKeys);
                     for (int i = 0; i < AllKeys.size(); i++) {
                         if (AllKeys.get(i).getValue().contains(currentLine)) {
                             try {
+                                System.out.println("Socket before Made!");
+                                sleep(1000);
                                 disconnect();
                                 currentAddress = InetAddress.getByName(AllKeys.get(i).getKey());
                                 socket = new Socket(currentAddress, 4321);
+                                System.out.println("Socket after Made!");
+                                sleep(1000);
                                 wrongBroker = true;
                                 break;
+                            } catch (ConnectException e){
+                                currentAddress = InetAddress.getByName(AllKeys.get(i).getKey());
+                                System.out.println(currentAddress);
+                                socket = new Socket(currentAddress, 4321);
                             } catch (IOException e) {
+                                e.printStackTrace();
+                            } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
                         }
@@ -127,6 +141,8 @@ public class Subscriber implements Node {
             } catch (IOException e) {
                 e.printStackTrace();
             } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }while(wrongBroker);

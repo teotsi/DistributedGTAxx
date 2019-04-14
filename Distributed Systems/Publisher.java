@@ -131,6 +131,7 @@ public class Publisher implements Node, Runnable, Serializable {
                 out.writeObject(busLine.getBusLine() + "x");
                 out.flush();
                 in.readObject();
+                System.out.println(Keys);
                 out.writeObject(Keys);
                 out.flush();
                 if(e.getKey().equals(currentAddress.getHostAddress())){
