@@ -58,7 +58,7 @@ public class Publisher implements Node, Runnable, Serializable {
 
             }
         }
-        Values.add(null);
+        Values.add(new Value(null,10.0,10.0));
     }
 
 

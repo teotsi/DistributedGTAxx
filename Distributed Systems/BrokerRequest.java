@@ -26,7 +26,7 @@ public class BrokerRequest implements Runnable{
         try {
             Topic tr= (Topic) in.readObject();
             Value vr = (Value) in.readObject();
-            if(vr==null){
+            if(vr.getLongitude()==10.0){
                 System.out.println("found null");
                 return false;
             }

@@ -36,7 +36,7 @@ public class Subscriber implements Node {
         try {
             Value vr = (Value) in.readObject();
             System.out.println(vr);
-            if (vr == null) {
+            if (vr.getLongitude()==10.0) {
                 System.out.println("found null");
                 return false;
             }
