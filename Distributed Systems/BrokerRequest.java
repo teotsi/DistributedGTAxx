@@ -2,6 +2,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -88,7 +89,11 @@ public class BrokerRequest implements Runnable{
                                     sleep(100);
                                     i++;
                                 }catch (IndexOutOfBoundsException e1){
+                                    System.out.println("exception e1");
                                     sleep(1000);
+                                }catch (SocketException e2){
+                                    System.out.println("Subscriber is down!");
+                                    break;
                                 }
                             }
 //                            for (Value v1 : e.getValue()) {
