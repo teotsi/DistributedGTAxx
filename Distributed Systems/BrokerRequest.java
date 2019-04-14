@@ -85,6 +85,7 @@ public class BrokerRequest implements Runnable{
                                     out.flush();
                                     if (v1.get(i).getLongitude() == 10.0) {
                                         System.out.println("found null");
+                                        break;
                                     }
                                     sleep(10);
                                     i++;
