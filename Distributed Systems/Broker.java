@@ -22,7 +22,7 @@ public class Broker implements Node{
     private static String[][] Hashes = new String[3][2]; //contains all broker IPs and their md5 hashes
     private static String[][] IDHashes;
     private static List<String> Keys = new ArrayList<>(); //contains all keys current broker is responsible for
-    private List<Map.Entry<String, List<String>>> AllKeys = new ArrayList<>();//contains all the keys
+    protected static List<Map.Entry<String, List<String>>> AllKeys = new ArrayList<>();//contains all the keys
 
     private InetAddress ipAddress;
     private ServerSocket providerSocket, emergencyServer;
@@ -51,6 +51,10 @@ public class Broker implements Node{
                 connect();
             }
         }
+
+    }
+
+    public Broker(){
 
     }
     private void modMD5(String[][] array, int size, int column){ //applying mod operation to MD5 hashes

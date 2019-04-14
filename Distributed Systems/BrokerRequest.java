@@ -10,18 +10,17 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import static java.lang.Thread.sleep;
 
-public class BrokerRequest implements Runnable {
+public class BrokerRequest extends Broker implements Runnable {
     private static List<Map.Entry<Topic, CopyOnWriteArrayList<Value>>> Buffer;
     private static List<String> BrokenKeys = new ArrayList<>();
     private int port;
     private Socket connectionSocket;
     private List<String> Keys;
-    private static List<Map.Entry<String, List<String>>> AllKeys;
 
     public BrokerRequest(Socket socket, List<String> Keys, List<Map.Entry<String, List<String>>> AllKeys, List<Map.Entry<Topic, CopyOnWriteArrayList<Value>>> Buffer) {
         this.connectionSocket = socket;
         this.Keys = Keys;
-        this.AllKeys = AllKeys;
+        super.AllKeys = AllKeys;
         BrokerRequest.Buffer = Buffer;
     }
 
