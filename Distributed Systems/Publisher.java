@@ -103,6 +103,23 @@ public class Publisher implements Node, Runnable, Serializable {
 
     }
 
+    private void notifyBrokers() {
+        List<String> orphanKeys = null;
+        for(Map.Entry<String, List<String>> e: Keys){
+            if(e.getKey().equals(connectionSocket.getLocalAddress().getHostAddress())){
+                orphanKeys = e.getValue();
+                continue;
+            }
+            try {
+                Socket emergencySocket = new Socket(InetAddress.getByName(e.getKey()), 4322);
+                ObjectOutputStream out = new ObjectOutputStream(emergencySocket.getOutputStream());
+                out.writeObject(orphanKeys);
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+        }
+    }
+
 
     public void notifyFailure(Broker b) {
     }
@@ -132,6 +149,7 @@ public class Publisher implements Node, Runnable, Serializable {
                         if (e instanceof SocketException) {
                             if (e.getMessage().contains("Connection reset")) {
                                 System.out.println("Connection reset, broker may be down.");
+                                notifyBrokers();
                             }
                             break;
                         }
@@ -143,7 +161,6 @@ public class Publisher implements Node, Runnable, Serializable {
                 wrongBroker=false;
             } else {// if not
                 for (int i = 0; i < 3; i++) {
-                    System.out.println("wtf");
                     System.out.println(Keys.get(i));
                     if (Keys.get(i).getValue().contains(busLine.getBusLine())) {
                         try {

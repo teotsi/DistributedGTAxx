@@ -53,7 +53,6 @@ public class Subscriber implements Node {
         } catch (IOException e) {
             if(e.getMessage().contains("Connection reset")){
                 System.out.println("Connection reset. Broker may be down.");
-                notifyBrokers();
                 return false;
             }
             e.printStackTrace();
@@ -63,22 +62,6 @@ public class Subscriber implements Node {
         return true;
     }
 
-    private void notifyBrokers() {
-        List<String> orphanKeys = null;
-        for(Map.Entry<String, List<String>> e: AllKeys){
-            if(e.getKey().equals(currentAddress.getHostAddress())){
-                orphanKeys = e.getValue();
-                continue;
-            }
-            try {
-                Socket emergencySocket = new Socket(InetAddress.getByName(e.getKey()), 4322);
-                ObjectOutputStream out = new ObjectOutputStream(emergencySocket.getOutputStream());
-                out.writeObject(orphanKeys);
-            } catch (IOException e1) {
-                e1.printStackTrace();
-            }
-        }
-    }
 
     public void register(Broker b, Topic t) {
 
