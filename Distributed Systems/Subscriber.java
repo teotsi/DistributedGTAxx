@@ -76,11 +76,14 @@ public class Subscriber implements Node {
 
     @Override
     public void init(int port) {
-        try {
-            int randomBroker = new Random().nextInt(3);
-            socket = new Socket(brokers.get(randomBroker).getIpAddress(), port); //connecting to get key info
-        } catch (IOException e) {
-            e.printStackTrace();
+        while(true) {
+            try {
+                int randomBroker = new Random().nextInt(3);
+                socket = new Socket(brokers.get(randomBroker).getIpAddress(), port); //connecting to get key info
+                break;
+            } catch (IOException e) {
+                System.out.println("Subscriber tried again");
+            }
         }
     }
 
@@ -105,7 +108,7 @@ public class Subscriber implements Node {
                     wrongBroker=false;
                 } else if(hasKey==1) {
                     System.out.println("other broker");
-                    for (int i = 0; i < 3; i++) {
+                    for (int i = 0; i < AllKeys.size(); i++) {
                         if (AllKeys.get(i).getValue().contains(currentLine)) {
                             try {
                                 disconnect();

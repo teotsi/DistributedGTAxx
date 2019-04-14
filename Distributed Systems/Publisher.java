@@ -5,10 +5,8 @@ import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.net.UnknownHostException;
+import java.util.*;
 
 import static java.lang.Thread.sleep;
 
@@ -21,6 +19,7 @@ public class Publisher implements Node, Runnable, Serializable {
     private String[] busLineInfo;
     private List<Bus> ListOfBuses = new ArrayList<>();
     private String[] Vehicles;
+    private InetAddress currentAddress;
     private List<Value> Values = new ArrayList<Value>();
     private List<Map.Entry<String, List<String>>> Keys = new ArrayList<>();// contains all the ips and their keys
 
@@ -48,6 +47,7 @@ public class Publisher implements Node, Runnable, Serializable {
         try {
             int randomBroker = new Random().nextInt(3);
             connectionSocket = new Socket(brokers.get(randomBroker).getIpAddress(), port); //connecting to get key info
+            this.currentAddress=brokers.get(randomBroker).getIpAddress();
             System.out.println("after connection Socket");
         } catch (IOException e) {
             e.printStackTrace();
@@ -109,34 +109,31 @@ public class Publisher implements Node, Runnable, Serializable {
 
     }
 
-    private void notifyBrokers() {
+    private void notifyBrokers() throws UnknownHostException {
         List<String> orphanKeys = null;
-        Map.Entry<String, List<String>> luckyNode=null;
-        int posRemove=0;
-        for (Map.Entry<String, List<String>> e : Keys) {
-            if (e.getKey().equals(connectionSocket.getLocalAddress().getHostAddress())) {
-                posRemove=Keys.indexOf(e);
-                orphanKeys = e.getValue();
-                break;
+        Iterator<Map.Entry<String,List<String>>> it=Keys.iterator();
+        while(it.hasNext()){
+            Map.Entry<String,List<String>> entry=it.next();
+            if(entry.getKey().equals(currentAddress.getHostAddress())){
+                orphanKeys=entry.getValue();
+                it.remove();
             }
-            luckyNode=e;
         }
-        Keys.remove(posRemove);
-        int position=Keys.indexOf(luckyNode);
-        luckyNode.getValue().addAll(orphanKeys);
-        Keys.add(position,luckyNode);
+        Keys.get(0).getValue().addAll(orphanKeys);
+        System.out.println(Keys.get(0));
+        currentAddress=InetAddress.getByName(Keys.get(0).getKey());
         for (Map.Entry<String, List<String>> e : Keys) {
             try {
+                System.out.println(e.getKey());
                 Socket emergencySocket = new Socket(InetAddress.getByName(e.getKey()), 4321);
                 ObjectOutputStream out = new ObjectOutputStream(emergencySocket.getOutputStream());
                 ObjectInputStream in = new ObjectInputStream(emergencySocket.getInputStream());
-                connect();
                 out.writeObject(busLine.getBusLine() + "x");
                 out.flush();
                 in.readObject();
                 out.writeObject(Keys);
                 out.flush();
-                if(e.equals(luckyNode)){
+                if(e.getKey().equals(currentAddress.getHostAddress())){
                     out.writeObject(true);
                     out.flush();
                     out.writeObject(orphanKeys);
@@ -205,7 +202,16 @@ public class Publisher implements Node, Runnable, Serializable {
                         if (e instanceof SocketException) {
                             if (e.getMessage().contains("Connection reset")) {
                                 System.out.println("Connection reset, broker may be down.");
-                                notifyBrokers();
+                                try {
+                                    notifyBrokers();
+                                } catch (UnknownHostException ex) {
+                                    ex.printStackTrace();
+                                }
+                                try {
+                                    connectionSocket=new Socket(currentAddress,4321);
+                                } catch (IOException ex) {
+                                    ex.printStackTrace();
+                                }
                                 notify=true;
                                 wrongBroker=true;
                             }
@@ -217,15 +223,16 @@ public class Publisher implements Node, Runnable, Serializable {
                     }
                 }
                 if(!notify) {
+                    System.out.println("right broker");
                     wrongBroker = false;
                 }
             } else {// if not
                 for (int i = 0; i < 3; i++) {
-                    System.out.println(Keys.get(i));
                     if (Keys.get(i).getValue().contains(busLine.getBusLine())) {
                         try {
                             disconnect();
-                            connectionSocket = new Socket(InetAddress.getByName(Keys.get(i).getKey()), 4321);
+                            this.currentAddress=InetAddress.getByName(Keys.get(i).getKey());
+                            connectionSocket = new Socket(currentAddress, 4321);
                             wrongBroker = true;
                             break;
                         } catch (IOException e) {

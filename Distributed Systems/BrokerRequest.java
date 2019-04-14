@@ -16,7 +16,7 @@ public class BrokerRequest implements Runnable {
     private int port;
     private Socket connectionSocket;
     private List<String> Keys;
-    private List<Map.Entry<String, List<String>>> AllKeys;
+    private static List<Map.Entry<String, List<String>>> AllKeys;
 
     public BrokerRequest(Socket socket, List<String> Keys, List<Map.Entry<String, List<String>>> AllKeys, List<Map.Entry<Topic, CopyOnWriteArrayList<Value>>> Buffer) {
         this.connectionSocket = socket;
@@ -77,9 +77,11 @@ public class BrokerRequest implements Runnable {
                 BrokenKeys.add(message.substring(0, message.length() - 1));
             } else if (message.contains("x")) {//broker failure
                 AllKeys= (List<Map.Entry<String, List<String>>>) in.readObject();
+                System.out.println(Keys);
                 if((boolean)in.readObject()){
                     Keys.addAll((List<String>)in.readObject());
                 }
+                System.out.println(Keys);
             } else {//push to sub
                 System.out.println("sending to sub");
                 Topic topic = new Topic(message);
