@@ -21,6 +21,7 @@ public class Publisher implements Node, Runnable, Serializable {
     private List<Bus> ListOfBuses = new ArrayList<>();
     private String[] Vehicles;
     private List<Value> Values = new ArrayList<Value>();
+    boolean flag=false;
     private List<Map.Entry<String,List<String>>> Keys = new ArrayList<>();// contains all the ips and their keys
 
     public Publisher(List<Broker> brokers) {
@@ -38,6 +39,11 @@ public class Publisher implements Node, Runnable, Serializable {
             ListOfBuses.add(new Bus(busLineInfo[0], Reader.getRouteCode(this.Vehicles[i]), this.Vehicles[i], busLineInfo[2], busLineInfo[1], Reader.getInfo(Reader.getRouteCode(this.Vehicles[i]))));
         }
         createValues();
+        if(this.Vehicles==null||this.ListOfBuses.isEmpty()||this.Values.isEmpty()||this.busLineInfo==null){
+            System.out.println("We are sorry, our sensor is down...");
+            notifyFailure(port);
+            System.exit(1);
+        }
         System.out.println("sync done");
         try {
             int randomBroker = new Random().nextInt(3);
@@ -121,7 +127,21 @@ public class Publisher implements Node, Runnable, Serializable {
     }
 
 
-    public void notifyFailure(Broker b) {
+    public void notifyFailure(int port) {
+        try {
+            int randomBroker = new Random().nextInt(3);
+            connectionSocket = new Socket(brokers.get(randomBroker).getIpAddress(),port); //connecting to get key info
+            System.out.println("after connection Socket");
+            connect();
+            out.writeObject(busLine.getBusLine() + "f");
+            out.flush();
+            in.readObject();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
     }
 
     @Override

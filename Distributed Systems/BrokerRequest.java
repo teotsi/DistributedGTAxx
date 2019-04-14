@@ -3,6 +3,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -15,6 +16,7 @@ public class BrokerRequest implements Runnable{
     private List<String> Keys;
     private List<Map.Entry<String,List<String>>> AllKeys;
     private static List<Map.Entry<Topic, CopyOnWriteArrayList<Value>>> Buffer;
+    private static List<String> BrokenKeys=new ArrayList<>();
 
     public BrokerRequest(Socket socket, List<String> Keys, List<Map.Entry<String,List<String>>> AllKeys, List<Map.Entry<Topic, CopyOnWriteArrayList<Value>>> Buffer){
         this.connectionSocket= socket;
@@ -69,17 +71,21 @@ public class BrokerRequest implements Runnable{
                 out.writeObject(false);
                 out.flush();
             }
-        }else{
+        } else if(message.contains("f")) {
+            System.out.println("Bus line "+message.substring(0,message.length()-1)+" is down...");
+            BrokenKeys.add(message.substring(0,message.length()-1));
+        }else {//push to sub
             System.out.println("sending to sub");
-            Topic topic=new Topic(message);
-            if(Keys.contains(message)){
-                out.writeObject(true);
-                out.flush();
+            Topic topic = new Topic(message);
+            if (!BrokenKeys.contains(message)){
+                if (Keys.contains(message)) {
+                    out.writeObject(0);
+                    out.flush();
                     for (Map.Entry<Topic, CopyOnWriteArrayList<Value>> e : Buffer) {
                         if (e.getKey().equals(topic)) {
-                            int i=0;
-                            List<Value> v1=e.getValue();
-                            while(true){
+                            int i = 0;
+                            List<Value> v1 = e.getValue();
+                            while (true) {
                                 try {
                                     out.writeObject(v1.get(i));
                                     out.flush();
@@ -89,10 +95,10 @@ public class BrokerRequest implements Runnable{
                                     }
                                     sleep(50);
                                     i++;
-                                }catch (IndexOutOfBoundsException e1){
+                                } catch (IndexOutOfBoundsException e1) {
                                     System.out.println("exception e1");
                                     sleep(1000);
-                                }catch (SocketException e2){
+                                } catch (SocketException e2) {
                                     System.out.println("Subscriber is down!");
                                     break;
                                 }
@@ -111,17 +117,20 @@ public class BrokerRequest implements Runnable{
                         }
 
                     }
-            }else{
-                out.writeObject(false);
-                out.flush();
+                } else {
+                    out.writeObject(1);
+                    out.flush();
+                }
+        }else {
+                out.writeObject(2);
             }
 
 
 
-        }
+    }
 
-        in.close();
-        out.close();
+    in.close();
+    out.close();
     }catch(IOException | ClassNotFoundException | InterruptedException e){
             if(e instanceof SocketException){
                 System.out.println("Socket closed");

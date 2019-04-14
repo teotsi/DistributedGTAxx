@@ -94,8 +94,8 @@ public class Subscriber implements Node {
                 out.writeObject(this.currentLine); //asking broker for list + if he's responsible for this key
                 out.flush();
                 AllKeys = (List<Map.Entry<String, List<String>>>) in.readObject();//reading the message of the broker saying if his is the correct one
-                boolean hasKey = (boolean) in.readObject();
-                if (hasKey) {
+                int hasKey = (int) in.readObject();
+                if (hasKey==0) {
                     boolean bool;
                     do {
                         bool = pull(in);
@@ -103,7 +103,7 @@ public class Subscriber implements Node {
                     System.out.println("No more location data for this bus!");
                     disconnect();
                     wrongBroker=false;
-                } else {
+                } else if(hasKey==1) {
                     System.out.println("other broker");
                     for (int i = 0; i < 3; i++) {
                         if (AllKeys.get(i).getValue().contains(currentLine)) {
@@ -118,6 +118,8 @@ public class Subscriber implements Node {
                             }
                         }
                     }
+                }else{
+                    System.out.println("Bus line "+ currentLine + " is down...");
                 }
             } catch (IOException e) {
                 e.printStackTrace();
