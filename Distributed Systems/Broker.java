@@ -7,6 +7,7 @@ import java.net.Socket;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 
 public class Broker implements Node{
@@ -14,7 +15,7 @@ public class Broker implements Node{
     private static int p = 4321; //port
     private List<Subscriber> registeredSubscribers;
     private List<Publisher> registeredPublishers;
-    private static List<Map.Entry<Topic, List<Value>>> Buffer = new ArrayList<>(); //contains all the buses from busPositionNew.txt that belongs to the broker.
+    private static CopyOnWriteArrayList<Map.Entry<Topic, CopyOnWriteArrayList<Value>>> Buffer = new CopyOnWriteArrayList<>(); //contains all the buses from busPositionNew.txt that belongs to the broker.
     private static String[][] Hashes = new String[3][2]; //contains all broker IPs and their md5 hashes
     private static String[][] IDHashes;
     private static List<String> Keys = new ArrayList<>(); //contains all keys current broker is responsible for
@@ -154,14 +155,14 @@ public class Broker implements Node{
 
     static void addToBuffer(Topic t, Value v) {
         boolean flag = true;
-        for (Map.Entry<Topic, List<Value>> e : Buffer) {
+        for (Map.Entry<Topic, CopyOnWriteArrayList<Value>> e : Buffer) {
             if (e.getKey().equals(t)) {
                 e.getValue().add(v);
                 flag = false;
             }
         }
         if (flag) {
-            Map.Entry<Topic, List<Value>> entry = new AbstractMap.SimpleEntry<>(t, new ArrayList<>());
+            Map.Entry<Topic, CopyOnWriteArrayList<Value>> entry = new AbstractMap.SimpleEntry<>(t, new CopyOnWriteArrayList<>());
             entry.getValue().add(v);
             Buffer.add(entry);
         }
