@@ -19,6 +19,8 @@ public class Subscriber implements Node {
     String currentLine;
     private List<Map.Entry<String, List<String>>> AllKeys;// contains all the ips and their keys
     private InetAddress currentAddress;
+    private int count=0;
+
     public Subscriber(List<Broker> brokers) {
         this.brokers.addAll(Reader.getBrokerList(PATH + "brokerIPs.txt"));
         Scanner in = new Scanner(System.in);
@@ -32,6 +34,7 @@ public class Subscriber implements Node {
             this.currentLine = input;
             init(4321);
             connect();
+            count=0;
         }
     }
 
@@ -48,6 +51,7 @@ public class Subscriber implements Node {
             try {
                 System.out.println("sleep");
                 sleep(1000);
+                count++;
             } catch (InterruptedException e1) {
                 e1.printStackTrace();
             }
@@ -105,6 +109,11 @@ public class Subscriber implements Node {
                     boolean bool;
                     do {
                         bool = pull(in);
+                        if(count>5){
+                            System.out.println("Broker is down, please insert line again.");
+                            count=0;
+                            return;
+                        }
                     } while (bool);
                     System.out.println("No more location data for this bus!");
                     disconnect();
@@ -139,7 +148,8 @@ public class Subscriber implements Node {
                     System.out.println("Bus line "+ currentLine + " is down...");
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                System.out.println("Broker down...");
+                return;
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
             } catch (InterruptedException e) {

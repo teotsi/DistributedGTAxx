@@ -1,7 +1,4 @@
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
@@ -38,11 +35,16 @@ public class Publisher implements Node, Runnable, Serializable {
             ListOfBuses.add(new Bus(busLineInfo[0], Reader.getRouteCode(this.Vehicles[i]), this.Vehicles[i], busLineInfo[2], busLineInfo[1], Reader.getInfo(Reader.getRouteCode(this.Vehicles[i]))));
         }
         createValues();
-        if (this.Vehicles == null || this.ListOfBuses.isEmpty() || this.Values.isEmpty() || this.busLineInfo == null) {
-            System.out.println("We are sorry, our sensor is down...");
-            notifyFailure(port);
-            System.exit(1);
+        try {
+            sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
+//        if (this.Vehicles == null || this.ListOfBuses.isEmpty() || this.Values.isEmpty() || this.busLineInfo == null) {
+//            System.out.println("We are sorry, our sensor is down...");
+//            notifyFailure(port);
+//            System.exit(1);
+//        }
         System.out.println("sync done");
         try {
             int randomBroker = new Random().nextInt(3);
@@ -76,7 +78,7 @@ public class Publisher implements Node, Runnable, Serializable {
             out = new ObjectOutputStream(connectionSocket.getOutputStream());
             System.out.println("finish connect");
         } catch (IOException e) {
-            e.printStackTrace();
+
         }
     }
 
@@ -87,7 +89,7 @@ public class Publisher implements Node, Runnable, Serializable {
             out.close();
             connectionSocket.close();
         } catch (IOException e) {
-            e.printStackTrace();
+
         }
     }
 
@@ -180,70 +182,89 @@ public class Publisher implements Node, Runnable, Serializable {
     @Override
     public void run() {
         init(4321);
-        boolean notify=false;
-        boolean wrongBroker = true;
-        do {
-            connect();
-            boolean rightBroker = false;
-            try {
-                out.writeObject(busLine.getBusLine() + "p");
-                out.flush();
-                this.Keys = (List<Map.Entry<String, List<String>>>) in.readObject();
-                rightBroker = (boolean) in.readObject();//reading the message of the broker saying if his is the correct one
-            } catch (IOException | ClassNotFoundException e) {
-                e.printStackTrace();
-            }
-            System.out.println("before push");
-            if (rightBroker) {//if he is in the right broker
-                for (Value v : Values) {
-                    try {
-                        push(busLine, v);
-                        sleep(50);
-                    } catch (IOException e) {
-                        if (e instanceof SocketException) {
-                            if (e.getMessage().contains("Connection reset")) {
-                                System.out.println("Connection reset, broker may be down.");
-                                try {
-                                    notifyBrokers();
-                                } catch (UnknownHostException ex) {
-                                    ex.printStackTrace();
-                                }
-                                try {
-                                    connectionSocket=new Socket(currentAddress,4321);
-                                } catch (IOException ex) {
-                                    ex.printStackTrace();
-                                }
-                                notify=true;
-                                wrongBroker=true;
-                            }
-                            break;
-                        }
-                        e.printStackTrace();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+        while (true) {
+            boolean wrongBroker = true;
+            do {
+                boolean rightBroker = false;
+                boolean notify = false;
+                try {
+                    connect();
+                    out.writeObject(busLine.getBusLine() + "p");
+                    out.flush();
+                    this.Keys = (List<Map.Entry<String, List<String>>>) in.readObject();
+                    rightBroker = (boolean) in.readObject();//reading the message of the broker saying if his is the correct one
+                } catch (IOException | ClassNotFoundException e){
+                    if(e instanceof EOFException){
+                        continue;
                     }
+
                 }
-                if(!notify) {
-                    System.out.println("right broker");
-                    wrongBroker = false;
-                }
-            } else {// if not
-                for (int i = 0; i < 3; i++) {
-                    if (Keys.get(i).getValue().contains(busLine.getBusLine())) {
+                System.out.println("before push");
+                if (rightBroker) {//if he is in the right broker
+                    for (Value v : Values) {
                         try {
-                            disconnect();
-                            this.currentAddress=InetAddress.getByName(Keys.get(i).getKey());
-                            connectionSocket = new Socket(currentAddress, 4321);
-                            wrongBroker = true;
-                            break;
+                            push(busLine, v);
+                            sleep(50);
                         } catch (IOException e) {
+                            if (e instanceof SocketException) {
+                                if (e.getMessage().contains("Connection reset")) {
+                                    System.out.println("Connection reset, broker may be down.");
+                                    try {
+                                        notifyBrokers();
+                                    } catch (UnknownHostException ex) {
+                                        ex.printStackTrace();
+                                    }
+                                    try {
+                                        connectionSocket = new Socket(currentAddress, 4321);
+                                    } catch (IOException ex) {
+                                        ex.printStackTrace();
+                                    }
+                                    notify = true;
+                                    wrongBroker = true;
+                                }
+                                break;
+                            }
+                            e.printStackTrace();
+                        } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
                     }
+                    if (!notify) {
+                        System.out.println("right broker");
+                        wrongBroker = false;
+                    }
+                } else {// if not
+                    for (int i = 0; i < 3; i++) {
+                        if (Keys.get(i).getValue().contains(busLine.getBusLine())) {
+                            try {
+                                disconnect();
+                                this.currentAddress = InetAddress.getByName(Keys.get(i).getKey());
+                                connectionSocket = new Socket(currentAddress, 4321);
+                                wrongBroker = true;
+                                break;
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                }
+            } while (wrongBroker);
+            while (true) {
+                try {
+                    sleep(2000);
+                    connectionSocket = new Socket(currentAddress, 4321);
+
+                } catch (IOException e) {
+                    try {
+                        notifyBrokers();
+                        break;
+                    } catch (UnknownHostException ex) {
+                        ex.printStackTrace();
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
-        } while (wrongBroker);
-        while (true) {
         }
     }
 }
