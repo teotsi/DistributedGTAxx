@@ -49,7 +49,6 @@ public class Subscriber implements Node {
             } catch (InterruptedException e1) {
                 e1.printStackTrace();
             }
-            return false;
         } catch (IOException e) {
             if(e.getMessage().contains("Connection reset")){
                 System.out.println("Connection reset. Broker may be down.");
