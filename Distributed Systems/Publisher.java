@@ -13,6 +13,7 @@ import java.util.Random;
 import static java.lang.Thread.sleep;
 
 public class Publisher implements Node, Runnable, Serializable {
+    boolean flag = false;
     private Socket connectionSocket;
     private ObjectOutputStream out;
     private ObjectInputStream in;
@@ -21,11 +22,10 @@ public class Publisher implements Node, Runnable, Serializable {
     private List<Bus> ListOfBuses = new ArrayList<>();
     private String[] Vehicles;
     private List<Value> Values = new ArrayList<Value>();
-    boolean flag=false;
-    private List<Map.Entry<String,List<String>>> Keys = new ArrayList<>();// contains all the ips and their keys
+    private List<Map.Entry<String, List<String>>> Keys = new ArrayList<>();// contains all the ips and their keys
 
     public Publisher(List<Broker> brokers) {
-        this.brokers.addAll(Reader.getBrokerList(PATH+"brokerIPs.txt"));
+        this.brokers.addAll(Reader.getBrokerList(PATH + "brokerIPs.txt"));
     }
 
     @Override
@@ -39,7 +39,7 @@ public class Publisher implements Node, Runnable, Serializable {
             ListOfBuses.add(new Bus(busLineInfo[0], Reader.getRouteCode(this.Vehicles[i]), this.Vehicles[i], busLineInfo[2], busLineInfo[1], Reader.getInfo(Reader.getRouteCode(this.Vehicles[i]))));
         }
         createValues();
-        if(this.Vehicles==null||this.ListOfBuses.isEmpty()||this.Values.isEmpty()||this.busLineInfo==null){
+        if (this.Vehicles == null || this.ListOfBuses.isEmpty() || this.Values.isEmpty() || this.busLineInfo == null) {
             System.out.println("We are sorry, our sensor is down...");
             notifyFailure(port);
             System.exit(1);
@@ -47,7 +47,7 @@ public class Publisher implements Node, Runnable, Serializable {
         System.out.println("sync done");
         try {
             int randomBroker = new Random().nextInt(3);
-            connectionSocket = new Socket(brokers.get(randomBroker).getIpAddress(),port); //connecting to get key info
+            connectionSocket = new Socket(brokers.get(randomBroker).getIpAddress(), port); //connecting to get key info
             System.out.println("after connection Socket");
         } catch (IOException e) {
             e.printStackTrace();
@@ -64,7 +64,7 @@ public class Publisher implements Node, Runnable, Serializable {
 
             }
         }
-        Values.add(new Value(null,10.0,10.0));
+        Values.add(new Value(null, 10.0, 10.0));
     }
 
 
@@ -111,26 +111,61 @@ public class Publisher implements Node, Runnable, Serializable {
 
     private void notifyBrokers() {
         List<String> orphanKeys = null;
-        for(Map.Entry<String, List<String>> e: Keys){
-            if(e.getKey().equals(connectionSocket.getLocalAddress().getHostAddress())){
+        Map.Entry<String, List<String>> luckyNode=null;
+        int posRemove=0;
+        for (Map.Entry<String, List<String>> e : Keys) {
+            if (e.getKey().equals(connectionSocket.getLocalAddress().getHostAddress())) {
+                posRemove=Keys.indexOf(e);
                 orphanKeys = e.getValue();
-                continue;
+                break;
             }
+            luckyNode=e;
+        }
+        Keys.remove(posRemove);
+        int position=Keys.indexOf(luckyNode);
+        luckyNode.getValue().addAll(orphanKeys);
+        Keys.add(position,luckyNode);
+        for (Map.Entry<String, List<String>> e : Keys) {
             try {
-                Socket emergencySocket = new Socket(InetAddress.getByName(e.getKey()), 4322);
+                Socket emergencySocket = new Socket(InetAddress.getByName(e.getKey()), 4321);
                 ObjectOutputStream out = new ObjectOutputStream(emergencySocket.getOutputStream());
-                out.writeObject(orphanKeys);
+                ObjectInputStream in = new ObjectInputStream(emergencySocket.getInputStream());
+                connect();
+                out.writeObject(busLine.getBusLine() + "x");
+                out.flush();
+                in.readObject();
+                out.writeObject(Keys);
+                out.flush();
+                if(e.equals(luckyNode)){
+                    out.writeObject(true);
+                    out.flush();
+                    out.writeObject(orphanKeys);
+                    out.flush();
+                }else{
+                    out.writeObject(false);
+                    out.flush();
+                }
+                try {
+                    in.close();
+                    out.close();
+                    emergencySocket.close();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
             } catch (IOException e1) {
                 e1.printStackTrace();
+            } catch (ClassNotFoundException ex) {
+                ex.printStackTrace();
             }
         }
+
     }
 
 
     public void notifyFailure(int port) {
         try {
             int randomBroker = new Random().nextInt(3);
-            connectionSocket = new Socket(brokers.get(randomBroker).getIpAddress(),port); //connecting to get key info
+            connectionSocket = new Socket(brokers.get(randomBroker).getIpAddress(), port); //connecting to get key info
             System.out.println("after connection Socket");
             connect();
             out.writeObject(busLine.getBusLine() + "f");
@@ -147,7 +182,8 @@ public class Publisher implements Node, Runnable, Serializable {
     @Override
     public void run() {
         init(4321);
-        boolean wrongBroker=true;
+        boolean notify=false;
+        boolean wrongBroker = true;
         do {
             connect();
             boolean rightBroker = false;
@@ -170,6 +206,8 @@ public class Publisher implements Node, Runnable, Serializable {
                             if (e.getMessage().contains("Connection reset")) {
                                 System.out.println("Connection reset, broker may be down.");
                                 notifyBrokers();
+                                notify=true;
+                                wrongBroker=true;
                             }
                             break;
                         }
@@ -178,7 +216,9 @@ public class Publisher implements Node, Runnable, Serializable {
                         e.printStackTrace();
                     }
                 }
-                wrongBroker=false;
+                if(!notify) {
+                    wrongBroker = false;
+                }
             } else {// if not
                 for (int i = 0; i < 3; i++) {
                     System.out.println(Keys.get(i));
@@ -186,7 +226,7 @@ public class Publisher implements Node, Runnable, Serializable {
                         try {
                             disconnect();
                             connectionSocket = new Socket(InetAddress.getByName(Keys.get(i).getKey()), 4321);
-                            wrongBroker=true;
+                            wrongBroker = true;
                             break;
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -194,7 +234,7 @@ public class Publisher implements Node, Runnable, Serializable {
                     }
                 }
             }
-        }while(wrongBroker);
+        } while (wrongBroker);
         while (true) {
         }
     }

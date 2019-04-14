@@ -10,131 +10,125 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import static java.lang.Thread.sleep;
 
-public class BrokerRequest implements Runnable{
+public class BrokerRequest implements Runnable {
+    private static List<Map.Entry<Topic, CopyOnWriteArrayList<Value>>> Buffer;
+    private static List<String> BrokenKeys = new ArrayList<>();
     private int port;
     private Socket connectionSocket;
     private List<String> Keys;
-    private List<Map.Entry<String,List<String>>> AllKeys;
-    private static List<Map.Entry<Topic, CopyOnWriteArrayList<Value>>> Buffer;
-    private static List<String> BrokenKeys=new ArrayList<>();
+    private List<Map.Entry<String, List<String>>> AllKeys;
 
-    public BrokerRequest(Socket socket, List<String> Keys, List<Map.Entry<String,List<String>>> AllKeys, List<Map.Entry<Topic, CopyOnWriteArrayList<Value>>> Buffer){
-        this.connectionSocket= socket;
-        this.Keys=Keys;
-        this.AllKeys=AllKeys;
-        this.Buffer=Buffer;
+    public BrokerRequest(Socket socket, List<String> Keys, List<Map.Entry<String, List<String>>> AllKeys, List<Map.Entry<Topic, CopyOnWriteArrayList<Value>>> Buffer) {
+        this.connectionSocket = socket;
+        this.Keys = Keys;
+        this.AllKeys = AllKeys;
+        BrokerRequest.Buffer = Buffer;
     }
 
-    public synchronized boolean pull( ObjectInputStream in) {
+    public synchronized boolean pull(ObjectInputStream in) {
         try {
-            Topic tr= (Topic) in.readObject();
+            Topic tr = (Topic) in.readObject();
             Value vr = (Value) in.readObject();
-            if(vr.getLongitude()==10.0){
+            if (vr.getLongitude() == 10.0) {
                 System.out.println("found null");
                 Broker.addToBuffer(tr, vr);
                 return false;
             }
-            Broker.addToBuffer(tr,vr);
+            Broker.addToBuffer(tr, vr);
             System.out.println("Broker no" + Thread.currentThread().getId() + " read");
-            System.out.println(vr.getLatitude()+" "+ vr.getLongitude());
+            System.out.println(vr.getLatitude() + " " + vr.getLongitude());
         } catch (IOException e) {
-           if(e.getMessage().contains("Connection reset")){
-               System.out.println("Connection reset. Publisher may be down.");
-               return false;
-           }
+            if (e.getMessage().contains("Connection reset")) {
+                System.out.println("Connection reset. Publisher may be down.");
+                return false;
+            }
             e.printStackTrace();
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
         return true;
     }
+
     @Override
     public void run() {
-        try{
+        try {
             System.out.println("New Request THREADDDD");
-        ObjectOutputStream out = new ObjectOutputStream(connectionSocket.getOutputStream());
-        System.out.println("after out");
-        ObjectInputStream in = new ObjectInputStream(connectionSocket.getInputStream());
-        String message=(String)in.readObject();
-        out.writeObject(AllKeys);
-        out.flush();
-        if (message.contains("p")){
-            System.out.println(message.substring(0,message.length()-1));
-            if(Keys.contains(message.substring(0,message.length()-1))){
-                out.writeObject(true);
-                out.flush();
-                boolean bool;
-                do{
-                    bool=pull(in);
-                }while(bool);
-            }else {
-                out.writeObject(false);
-                out.flush();
-            }
-        } else if(message.contains("f")) {
-            System.out.println("Bus line "+message.substring(0,message.length()-1)+" is down...");
-            BrokenKeys.add(message.substring(0,message.length()-1));
-        }else {//push to sub
-            System.out.println("sending to sub");
-            Topic topic = new Topic(message);
-            if (!BrokenKeys.contains(message)){
-                if (Keys.contains(message)) {
-                    out.writeObject(0);
+            ObjectOutputStream out = new ObjectOutputStream(connectionSocket.getOutputStream());
+            System.out.println("after out");
+            ObjectInputStream in = new ObjectInputStream(connectionSocket.getInputStream());
+            String message = (String) in.readObject();
+            out.writeObject(AllKeys);
+            out.flush();
+            if (message.contains("p")) {
+                System.out.println(message.substring(0, message.length() - 1));
+                if (Keys.contains(message.substring(0, message.length() - 1))) {
+                    out.writeObject(true);
                     out.flush();
-                    for (Map.Entry<Topic, CopyOnWriteArrayList<Value>> e : Buffer) {
-                        if (e.getKey().equals(topic)) {
-                            int i = 0;
-                            List<Value> v1 = e.getValue();
-                            while (true) {
-                                try {
-                                    out.writeObject(v1.get(i));
-                                    out.flush();
-                                    if (v1.get(i).getLongitude() == 10.0) {
-                                        System.out.println("found null");
-                                        break;
-                                    }
-                                    sleep(50);
-                                    i++;
-                                } catch (IndexOutOfBoundsException e1) {
-                                    System.out.println("exception e1");
-                                    sleep(1000);
-                                } catch (SocketException e2) {
-                                    System.out.println("Subscriber is down!");
-                                    break;
-                                }
-                            }
-//                            for (Value v1 : e.getValue()) {
-////                                out.writeObject(v1);
-////                                out.flush();
-////                                if (v1.getLongitude()==10.0) {
-////                                    System.out.println("found null");
-////                                }
-//////                            if(v==null){
-//////                                System.out.println("v is null");
-//////                            }
-////                                sleep(100);
-////                            }
-                        }
-
-                    }
+                    boolean bool;
+                    do {
+                        bool = pull(in);
+                    } while (bool);
                 } else {
-                    out.writeObject(1);
+                    out.writeObject(false);
                     out.flush();
                 }
-        }else {
-                out.writeObject(2);
+            } else if (message.contains("f")) {//sensor failure
+                System.out.println("Bus line " + message.substring(0, message.length() - 1) + " is down...");
+                BrokenKeys.add(message.substring(0, message.length() - 1));
+            } else if (message.contains("x")) {//broker failure
+                AllKeys= (List<Map.Entry<String, List<String>>>) in.readObject();
+                if((boolean)in.readObject()){
+                    Keys.addAll((List<String>)in.readObject());
+                }
+            } else {//push to sub
+                System.out.println("sending to sub");
+                Topic topic = new Topic(message);
+                if (!BrokenKeys.contains(message)) {
+                    if (Keys.contains(message)) {
+                        out.writeObject(0);
+                        out.flush();
+                        for (Map.Entry<Topic, CopyOnWriteArrayList<Value>> e : Buffer) {
+                            if (e.getKey().equals(topic)) {
+                                int i = 0;
+                                List<Value> v1 = e.getValue();
+                                while (true) {
+                                    try {
+                                        out.writeObject(v1.get(i));
+                                        out.flush();
+                                        if (v1.get(i).getLongitude() == 10.0) {
+                                            System.out.println("found null");
+                                            break;
+                                        }
+                                        sleep(50);
+                                        i++;
+                                    } catch (IndexOutOfBoundsException e1) {
+                                        System.out.println("exception e1");
+                                        sleep(1000);
+                                    } catch (SocketException e2) {
+                                        System.out.println("Subscriber is down!");
+                                        break;
+                                    }
+                                }
+                            }
+
+                        }
+                    } else {
+                        out.writeObject(1);
+                        out.flush();
+                    }
+                } else {
+                    out.writeObject(2);
+                }
+
+
             }
 
-
-
-    }
-
-    in.close();
-    out.close();
-    }catch(IOException | ClassNotFoundException | InterruptedException e){
-            if(e instanceof SocketException){
+            in.close();
+            out.close();
+        } catch (IOException | ClassNotFoundException | InterruptedException e) {
+            if (e instanceof SocketException) {
                 System.out.println("Socket closed");
-            }else{
+            } else {
                 e.printStackTrace();
             }
         }
