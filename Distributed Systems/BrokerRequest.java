@@ -86,7 +86,7 @@ public class BrokerRequest implements Runnable{
                                     if (v1.get(i).getLongitude() == 10.0) {
                                         System.out.println("found null");
                                     }
-                                    sleep(100);
+                                    sleep(10);
                                     i++;
                                 }catch (IndexOutOfBoundsException e1){
                                     System.out.println("exception e1");
