@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
 
+import static java.lang.Thread.sleep;
+
 public class Subscriber implements Node {
     Socket socket;
     ObjectOutputStream out;
@@ -42,6 +44,11 @@ public class Subscriber implements Node {
             }
             visualiseData(vr);
         } catch (EOFException e){
+            try {
+                sleep(1000);
+            } catch (InterruptedException e1) {
+                e1.printStackTrace();
+            }
             return false;
         } catch (IOException e) {
             if(e.getMessage().contains("Connection reset")){
