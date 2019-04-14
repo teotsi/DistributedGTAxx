@@ -59,7 +59,7 @@ public class Subscriber implements Node {
     }
 
     public void visualiseData( Value v) {
-        System.out.println("New position! " + currentLine + " is at" + v.getLatitude() + ", " + v.getLongitude());
+        System.out.println("New position! " + currentLine + " is at " + v.getLatitude() + ", " + v.getLongitude());
     }
 
     @Override
