@@ -4,18 +4,17 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import static java.lang.Thread.sleep;
 
 public class BrokerRequest implements Runnable {
-    private static List<Map.Entry<Topic, CopyOnWriteArrayList<Value>>> Buffer;
+    private static List<Map.Entry<Topic, List<Value>>> Buffer;
     private int port;
     private Socket connectionSocket;
     private List<String> Keys;
     private List<Map.Entry<String, List<String>>> AllKeys;
 
-    public BrokerRequest(Socket socket, List<String> Keys, List<Map.Entry<String, List<String>>> AllKeys, List<Map.Entry<Topic, CopyOnWriteArrayList<Value>>> Buffer) {
+    public BrokerRequest(Socket socket, List<String> Keys, List<Map.Entry<String, List<String>>> AllKeys, List<Map.Entry<Topic, List<Value>>> Buffer) {
         this.connectionSocket = socket;
         this.Keys = Keys;
         this.AllKeys = AllKeys;
@@ -74,7 +73,7 @@ public class BrokerRequest implements Runnable {
                 if (Keys.contains(message)) {
                     out.writeObject(true);
                     out.flush();
-                    for (Map.Entry<Topic, CopyOnWriteArrayList<Value>> e : Buffer) {
+                    for (Map.Entry<Topic, List<Value>> e : Buffer) {
                         if (e.getKey().equals(topic)) {
                             for (Value v1 : e.getValue()) {
                                 out.writeObject(v1);
