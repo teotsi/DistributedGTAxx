@@ -1,9 +1,0 @@
-<resources>
-    <string name="ds2011">Distributed Systems\n2018-2019</string>
-    <string name="button_enter">Enter</string>
-
-    <string name="click_android">Click on the android</string>
-    <string name="changed_text">Text to be changed</string>
-
-    <string name="app_name">lab1android</string>
-</resources>
