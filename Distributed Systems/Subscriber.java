@@ -103,7 +103,7 @@ public class Subscriber implements Node {
                 sleep(1000);
                 in = new ObjectInputStream(socket.getInputStream());
                 out = new ObjectOutputStream(socket.getOutputStream());
-                out.writeObject(this.currentLine+"-"+direction); //asking broker for list + if he's responsible for this key
+                out.writeObject(this.currentLine+","+direction); //asking broker for list + if he's responsible for this key
                 out.flush();
                 AllKeys = (List<Map.Entry<String, List<String>>>) in.readObject();//reading the message of the broker saying if his is the correct one
                 int hasKey = (int) in.readObject();

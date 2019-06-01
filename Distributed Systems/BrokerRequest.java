@@ -86,10 +86,11 @@ public class BrokerRequest extends Broker implements Runnable {
             } else {//push to sub
                 System.out.println("sending to sub");
                 StringTokenizer tk = new StringTokenizer(message,",");
-                Topic topic = new Topic(tk.nextToken());
+                String key = tk.nextToken();
+                Topic topic = new Topic(key);
                 String route = tk.nextToken();
-                if (!BrokenKeys.contains(message)) {
-                    if (Keys.contains(message)) {
+                if (!BrokenKeys.contains(key)) {
+                    if (Keys.contains(key)) {
                         out.writeObject(0);
                         out.flush();
                         for (Map.Entry<Topic, CopyOnWriteArrayList<Value>> e : Buffer) {
