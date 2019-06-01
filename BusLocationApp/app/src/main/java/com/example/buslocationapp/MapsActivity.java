@@ -1,7 +1,13 @@
 package com.example.buslocationapp;
 
+import android.content.res.AssetManager;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -10,9 +16,18 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, AdapterView.OnItemSelectedListener {
 
     private GoogleMap mMap;
+    private Spinner masterRouteSpinner, routeVariantSpinner;
+    RouteReader r = new RouteReader();
+    List<Routes> bRoutes;
+    List<String> masterRoutes;
+    List<String> routeVariants;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,7 +37,67 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+
+        AssetManager assets = getAssets();
+
+        try{
+
+            masterRouteSpinner = (Spinner)findViewById(R.id.MasterRouteSpinner);
+            routeVariantSpinner = (Spinner)findViewById(R.id.RouteVariantSpinner);
+
+            bRoutes = r.getRoutes(assets.open("RouteCodesNew.txt"));
+            masterRoutes = getMasterRoutes();
+
+            masterRouteSpinner.setOnItemSelectedListener(this);
+
+
+            ArrayAdapter<String> masterAdapter = new ArrayAdapter<>(this,
+                    android.R.layout.simple_spinner_dropdown_item, masterRoutes);
+            masterAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            masterRouteSpinner.setAdapter(masterAdapter);
+
+
+            routeVariantSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    Toast.makeText(MapsActivity.this, routeVariants.get(position), Toast.LENGTH_SHORT).show();
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {
+
+                }
+            });
+
+        }catch(IOException e){
+            e.printStackTrace();
+        }
     }
+
+
+    @Override
+    public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2, long arg3){
+        String selection = masterRoutes.get(arg2);
+        Toast.makeText(MapsActivity.this, masterRoutes.get(arg2), Toast.LENGTH_SHORT).show();
+        routeVariants = getSelectedRouteVariants(selection);
+        ArrayAdapter<String> variantAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_dropdown_item, routeVariants);
+        variantAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        routeVariantSpinner.setAdapter(variantAdapter);
+
+    }
+
+
+    @Override
+    public void onNothingSelected(AdapterView<?> arg0){
+
+    }
+
+
+
+
+
 
 
     /**
@@ -42,5 +117,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LatLng athens = new LatLng(37.983810, 23.727539);
         mMap.addMarker(new MarkerOptions().position(athens).title("Marker in Sydney"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(athens));
+    }
+
+    public List<String> getMasterRoutes(){
+        List<String> mRoutes = new ArrayList<>();
+        for(Routes r : bRoutes){
+            mRoutes.add(r.getMasterRoute());
+        }
+        return mRoutes;
+    }
+
+    public List<String> getSelectedRouteVariants(String selection){
+        List<String> list = new ArrayList<>();
+        for(Routes r : bRoutes){
+            if(r.getMasterRoute().equals(selection)){
+                list = r.getRouteVariants();
+                break;
+            }
+        }return list;
     }
 }

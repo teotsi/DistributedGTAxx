@@ -3,6 +3,7 @@ package com.example.buslocationapp;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.*;
 
 public class RouteReader {
@@ -17,10 +18,10 @@ public class RouteReader {
 
     public static List<Routes> bRoutes = new ArrayList<>();
 
-    public static void main(String[] args) {
+    public List<Routes> getRoutes(InputStream in) {
         Scanner input;
         try {
-            input = new Scanner(new File(FILENAME));
+            input = new Scanner(in);
             while (input.hasNext()) {
                 filelines.add(input.nextLine());
             }
@@ -57,12 +58,11 @@ public class RouteReader {
             }
 
             input.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         }catch (IndexOutOfBoundsException ex){
             ex.printStackTrace();
         }
 
+        return bRoutes;
     }
 }
 
