@@ -33,9 +33,7 @@ public class Subscriber implements Node {
                 input = in.next();
             }
             this.currentLine = input;
-            System.out.println("Start(1) or return(2)?");
-            input = in.next().trim();
-            direction = Integer.parseInt(input);
+            this.direction = 818;
             init(4321);
             connect();
             count=0;
@@ -80,7 +78,7 @@ public class Subscriber implements Node {
     }
 
     public void visualiseData( Value v) {
-        System.out.println("New position! " + currentLine + " is at " + v.getLatitude() + ", " + v.getLongitude());
+        System.out.println("New position! " + currentLine + " is at " + v.getLatitude() + ", " + v.getLongitude()+"Rouuute:"+v.getBus().getRouteCode());
     }
 
     @Override
@@ -105,7 +103,7 @@ public class Subscriber implements Node {
                 sleep(1000);
                 in = new ObjectInputStream(socket.getInputStream());
                 out = new ObjectOutputStream(socket.getOutputStream());
-                out.writeObject(this.currentLine+direction); //asking broker for list + if he's responsible for this key
+                out.writeObject(this.currentLine+"-"+direction); //asking broker for list + if he's responsible for this key
                 out.flush();
                 AllKeys = (List<Map.Entry<String, List<String>>>) in.readObject();//reading the message of the broker saying if his is the correct one
                 int hasKey = (int) in.readObject();
