@@ -20,6 +20,7 @@ public class Subscriber implements Node {
     private List<Map.Entry<String, List<String>>> AllKeys;// contains all the ips and their keys
     private InetAddress currentAddress;
     private int count=0;
+    private int direction;
 
     public Subscriber(List<Broker> brokers) {
         this.brokers.addAll(Reader.getBrokerList(PATH + "brokerIPs.txt"));
@@ -27,11 +28,14 @@ public class Subscriber implements Node {
         while (true) {
             System.out.print("Enter bus line:");
             String input = in.next().trim();
-            while (input.length() != 3) {
+            while (input.length() > 3) {
                 System.out.print("\nInvalid bus! Retry: ");
                 input = in.next();
             }
             this.currentLine = input;
+            System.out.println("Start(1) or return(2)?");
+            input = in.next().trim();
+            direction = Integer.parseInt(input);
             init(4321);
             connect();
             count=0;
@@ -101,7 +105,7 @@ public class Subscriber implements Node {
                 sleep(1000);
                 in = new ObjectInputStream(socket.getInputStream());
                 out = new ObjectOutputStream(socket.getOutputStream());
-                out.writeObject(this.currentLine); //asking broker for list + if he's responsible for this key
+                out.writeObject(this.currentLine+direction); //asking broker for list + if he's responsible for this key
                 out.flush();
                 AllKeys = (List<Map.Entry<String, List<String>>>) in.readObject();//reading the message of the broker saying if his is the correct one
                 int hasKey = (int) in.readObject();

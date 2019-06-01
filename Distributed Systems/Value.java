@@ -5,6 +5,7 @@ public class Value implements Serializable {
     private Bus bus;
     private double latitude;
     private double longitude;
+    private int direction;
 
     public Value(Bus bus, double latitude, double longitude) {
         this.bus = bus;

@@ -84,7 +84,7 @@ public class BrokerRequest extends Broker implements Runnable {
                 System.out.println(Keys);
             } else {//push to sub
                 System.out.println("sending to sub");
-                Topic topic = new Topic(message);
+                Topic topic = new Topic(message.substring(0,message.length()-1));
                 if (!BrokenKeys.contains(message)) {
                     if (Keys.contains(message)) {
                         out.writeObject(0);
@@ -95,6 +95,7 @@ public class BrokerRequest extends Broker implements Runnable {
                                 List<Value> v1 = e.getValue();
                                 while (true) {
                                     try {
+                                        if()
                                         out.writeObject(v1.get(i));
                                         out.flush();
                                         if (v1.get(i).getLongitude() == 10.0) {
