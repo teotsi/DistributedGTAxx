@@ -33,7 +33,7 @@ public class Subscriber implements Node {
                 input = in.next();
             }
             this.currentLine = input;
-            this.direction = 818;
+            this.direction = 1804;
             init(4321);
             connect();
             count=0;
