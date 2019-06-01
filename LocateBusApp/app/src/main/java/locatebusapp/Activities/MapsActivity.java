@@ -1,7 +1,10 @@
 package locatebusapp.Activities;
 
+import android.content.res.AssetManager;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 
 import com.example.locatebusapp.R;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -11,9 +14,15 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.io.IOException;
+import java.util.List;
+
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
+    private Spinner masterRouteSpinner, routeVariantSpinner;
+    private RouteReader r = new RouteReader();
+    private List<Routes> bRoutes;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,6 +32,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        AssetManager assets = getAssets();
+        try{
+            bRoutes = r.getRoutes(assets.open("RouteCodesNew.txt"));
+
+            masterRouteSpinner = (Spinner)findViewById(R.id.MasterRouteSpinner);
+            routeVariantSpinner = (Spinner)findViewById(R.id.RouteVariantSpinner);
+
+
+            ArrayAdapter<Routes> masterAdapter = new ArrayAdapter<>(this,
+                    android.R.layout.simple_spinner_dropdown_item);
+            masterAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            masterRouteSpinner.setAdapter(masterAdapter);
+        }catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 
