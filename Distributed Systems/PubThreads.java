@@ -6,7 +6,7 @@ public class PubThreads {
         Reader.createPositionTable();
         Reader.createBusesMap();
         Reader.createRoutesNinfo();
-        for (int i = 0; i <20 ; i++) {
+        for (int i = 0; i <13 ; i++) {
             new Thread(new Publisher(new ArrayList<>())).start();
         }
     }

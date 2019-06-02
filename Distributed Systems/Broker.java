@@ -1,7 +1,4 @@
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -14,7 +11,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 
 public class Broker implements Node{
-    final int MOD = 10; //modulo
+    final int MOD = 100; //modulo
     private static int p = 4321; //port
     private List<Subscriber> registeredSubscribers;
     private List<Publisher> registeredPublishers;

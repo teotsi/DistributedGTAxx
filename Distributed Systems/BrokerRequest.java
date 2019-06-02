@@ -6,6 +6,7 @@ import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.StringTokenizer;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import static java.lang.Thread.sleep;
@@ -84,9 +85,12 @@ public class BrokerRequest extends Broker implements Runnable {
                 System.out.println(Keys);
             } else {//push to sub
                 System.out.println("sending to sub");
-                Topic topic = new Topic(message.substring(0,message.length()-1));
-                if (!BrokenKeys.contains(message)) {
-                    if (Keys.contains(message)) {
+                StringTokenizer tk = new StringTokenizer(message,",");
+                String key = tk.nextToken();
+                Topic topic = new Topic(key);
+                String route = tk.nextToken();
+                if (!BrokenKeys.contains(key)) {
+                    if (Keys.contains(key)) {
                         out.writeObject(0);
                         out.flush();
                         for (Map.Entry<Topic, CopyOnWriteArrayList<Value>> e : Buffer) {
@@ -95,10 +99,12 @@ public class BrokerRequest extends Broker implements Runnable {
                                 List<Value> v1 = e.getValue();
                                 while (true) {
                                     try {
-                                        if()
-                                        out.writeObject(v1.get(i));
-                                        out.flush();
-                                        if (v1.get(i).getLongitude() == 10.0) {
+                                        Value currentValue = v1.get(i);
+                                        if(currentValue.getBus().getRouteCode().equals(route)) {
+                                            out.writeObject(currentValue);
+                                            out.flush();
+                                        }
+                                        if (currentValue.getLongitude() == 10.0) {
                                             System.out.println("found null");
                                             break;
                                         }
