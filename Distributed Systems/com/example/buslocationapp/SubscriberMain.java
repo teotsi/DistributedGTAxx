@@ -1,3 +1,5 @@
+package com.example.buslocationapp;
+
 import java.util.ArrayList;
 
 public class SubscriberMain {

@@ -23,7 +23,7 @@ public class Publisher implements Node, Runnable, Serializable {
     private List<Map.Entry<String, List<String>>> Keys = new ArrayList<>();// contains all the ips and their keys
 
     public Publisher(List<Broker> brokers) {
-        this.brokers.addAll(Reader.getBrokerList(PATH + "brokerIPs.txt"));
+//        this.brokers.addAll(Reader.getBrokerList(PATH + "brokerIPs.txt"));
     }
 
     @Override

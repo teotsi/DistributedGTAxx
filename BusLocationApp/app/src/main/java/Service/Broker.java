@@ -71,7 +71,7 @@ public class Broker implements Node {
             busLinesHash[i][0] = Reader.getBus()[1];
             busLinesHash[i][1] = calculateHash(busLinesHash[i][0]);
         }
-        Reader.getBrokerList("brokerIPs.txt");
+//        Reader.getBrokerList("brokerIPs.txt");
         List<String> ips = Reader.getIPs();
         String[][] ipHashes = new String[3][3];
         for (int j = 0; j < 3; j++) {

@@ -1,6 +1,7 @@
 package com.example.buslocationapp;
 
 import android.content.res.AssetManager;
+import android.os.AsyncTask;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -17,8 +18,11 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+
+import Service.Subscriber;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, AdapterView.OnItemSelectedListener {
 
@@ -117,6 +121,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LatLng athens = new LatLng(37.983810, 23.727539);
         mMap.addMarker(new MarkerOptions().position(athens).title("Marker in Sydney"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(athens));
+        new SubTask().execute();
     }
 
     public List<String> getMasterRoutes(){
@@ -135,5 +140,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 break;
             }
         }return list;
+    }
+    private class SubTask extends AsyncTask<String, Void, Void>{
+
+        @Override
+        protected Void doInBackground(String... file) {
+            AssetManager s = getAssets();
+            try {
+                InputStream stream = s.open("brokerIPs.txt");
+                new Subscriber(new ArrayList<>(),stream);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
     }
 }

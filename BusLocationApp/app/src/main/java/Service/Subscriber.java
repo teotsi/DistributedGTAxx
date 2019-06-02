@@ -2,6 +2,7 @@ package Service;
 
 import java.io.EOFException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ConnectException;
@@ -24,20 +25,20 @@ public class Subscriber implements Node {
     private int count=0;
     private int direction;
 
-    public Subscriber(List<Broker> brokers) {
-        this.brokers.addAll(Reader.getBrokerList(PATH + "brokerIPs.txt"));
+    public Subscriber(List<Broker> brokers, InputStream stream) {
+        this.brokers.addAll(Reader.getBrokerList(stream));
         Scanner in = new Scanner(System.in);
         while (true) {
-            System.out.print("Enter bus line:");
-            String input = in.next().trim();
-            while (input.length() > 3) {
-                System.out.print("\nInvalid bus! Retry: ");
-                input = in.next();
-            }
-            this.currentLine = input;
-            System.out.println("Start(1) or return(2)?");
-            input = in.next().trim();
-            direction = Integer.parseInt(input);
+//            System.out.print("Enter bus line:");
+//            String input = in.next().trim();
+//            while (input.length() > 3) {
+//                System.out.print("\nInvalid bus! Retry: ");
+//                input = in.next();
+//            }
+//            this.currentLine = input;
+//            System.out.println("Start(1) or return(2)?");
+//            input = in.next().trim();
+//            direction = Integer.parseInt(input);
             init(4321);
             connect();
             count=0;
@@ -107,7 +108,7 @@ public class Subscriber implements Node {
                 sleep(1000);
                 in = new ObjectInputStream(socket.getInputStream());
                 out = new ObjectOutputStream(socket.getOutputStream());
-                out.writeObject(this.currentLine+direction); //asking broker for list + if he's responsible for this key
+                out.writeObject("022,1804"); //asking broker for list + if he's responsible for this key
                 out.flush();
                 AllKeys = (List<Map.Entry<String, List<String>>>) in.readObject();//reading the message of the broker saying if his is the correct one
                 int hasKey = (int) in.readObject();

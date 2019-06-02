@@ -2,6 +2,7 @@ package Service;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
@@ -146,14 +147,22 @@ public class Reader {
         }
         return fileLines;
     }
+    private static List<String> getFileLines(InputStream fileName) {
+        List<String> fileLines = new ArrayList<>();
+        Scanner input = new Scanner(fileName);
+        while (input.hasNext()) {
+            fileLines.add(input.nextLine());
+        }
+        return fileLines;
+    }
 
     public static List<String> getIPs(){
         return  ipLines;
     }
 
-    public static List<Broker> getBrokerList(String ipFileName) {
+    public static List<Broker> getBrokerList(InputStream stream) {
         List<Broker> brokers = new ArrayList<>();
-        ipLines = getFileLines(ipFileName);
+        ipLines = getFileLines(stream);
         for (String ip : ipLines) {
             try {
                 brokers.add(new Broker(new ArrayList<>(),null, InetAddress.getByName(ip),false));
