@@ -20,8 +20,11 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
@@ -33,6 +36,8 @@ import java.util.List;
 import Service.Bus;
 import Service.Subscriber;
 import Service.Value;
+
+import static java.lang.Thread.sleep;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, AdapterView.OnItemSelectedListener {
 
@@ -166,27 +171,40 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     public static void manageMarkers(Value vr, MapsActivity activity) {
+        try {
+            sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         if (Buses.contains(vr.getBus())) {
-            Buses.get(Buses.indexOf(vr.getBus())).getMarker().position(new LatLng(vr.getLatitude(), vr.getLongitude()));
+//            Buses.get(Buses.indexOf(vr.getBus())).getMarker().remove();
+//            Buses.get(Buses.indexOf(vr.getBus())).setMarker(mMap.addMarker(new MarkerOptions().position(new LatLng(vr.getLatitude(),vr.getLongitude()))));
             activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-
-                    mMap.addMarker(Buses.get(Buses.indexOf(vr.getBus())).getMarker());
+                    Buses.get(Buses.indexOf(vr.getBus())).getMarker().remove();
+                    MarkerOptions markerOptions=new MarkerOptions().position(new LatLng(vr.getLatitude(),vr.getLongitude()));
+                    markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.bus_icon));
+                    Buses.get(Buses.indexOf(vr.getBus())).setMarker(mMap.addMarker(markerOptions));
                 }
             });
             //mMap.addMarker(Buses.get(Buses.indexOf(vr.getBus())).getMarker());
             //animateMarker(Buses.get(Buses.indexOf(vr.getBus())).getMarker(), new LatLng(vr.getLatitude(), vr.getLongitude()), true, activity);
         } else {
             Buses.add(vr.getBus());
-            Buses.get(Buses.size() - 1).setMarker(new MarkerOptions());
-            Buses.get(Buses.size() - 1).getMarker().position(new LatLng(vr.getLatitude(), vr.getLongitude()));
+//            Marker marker;
+//            marker=mMap.addMarker(new MarkerOptions().position(new LatLng(vr.getLatitude(), vr.getLongitude())));
+//            Buses.get(Buses.size() - 1).setMarker(marker);
             activity.runOnUiThread(new Runnable(){
                 public void run(){
-                    mMap.addMarker(Buses.get(Buses.size() - 1).getMarker());
+                    Marker marker;
+                    marker=mMap.addMarker(new MarkerOptions().position(new LatLng(vr.getLatitude(), vr.getLongitude())));
+                    Buses.get(Buses.size() - 1).setMarker(marker);
+                    Buses.get(Buses.size() - 1).getMarker().setIcon(BitmapDescriptorFactory.fromResource(R.drawable.bus_icon));
                     System.out.println("added first mark111111111111111111111");
                 }
             });
+
             //mMap.addMarker(Buses.get(Buses.size() - 1).getMarker());
         }
     }
