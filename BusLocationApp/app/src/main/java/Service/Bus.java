@@ -1,5 +1,7 @@
 package Service;
 
+import com.google.android.gms.maps.model.MarkerOptions;
+
 import java.io.Serializable;
 
 public class Bus implements Serializable {
@@ -10,6 +12,7 @@ public class Bus implements Serializable {
     private String lineName;
     private String buslineId;
     private String info;
+    private MarkerOptions marker;
 
 
     public Bus(String lineNumber, String routeCode, String vehicleId, String lineName, String buslineId, String info) {
@@ -70,6 +73,14 @@ public class Bus implements Serializable {
 
     public void setInfo(String info) {
         this.info = info;
+    }
+
+    public void setMarker(MarkerOptions marker) {
+        this.marker = marker;
+    }
+
+    public MarkerOptions getMarker() {
+        return marker;
     }
 
 }

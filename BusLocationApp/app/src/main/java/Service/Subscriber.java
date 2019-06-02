@@ -1,5 +1,7 @@
 package Service;
 
+import com.example.buslocationapp.MapsActivity;
+
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -44,34 +46,34 @@ public class Subscriber implements Node {
         }
     }
 
-    public synchronized boolean pull(ObjectInputStream in) {
-        try {
-            Value vr = (Value) in.readObject();
-            System.out.println(vr);
-            if (vr.getLongitude()==10.0) {
-                System.out.println("found null");
-                return false;
-            }
-            visualiseData(vr);
-        } catch (EOFException e){
-            try {
-                System.out.println("sleep");
-                sleep(1000);
-                count++;
-            } catch (InterruptedException e1) {
-                e1.printStackTrace();
-            }
-        } catch (IOException e) {
-            if(e.getMessage().contains("Connection reset")){
-                System.out.println("Connection reset. Service.Broker may be down.");
-                return false;
-            }
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-        return true;
-    }
+//    public synchronized boolean pull(ObjectInputStream in) {
+//        try {
+//            Value vr = (Value) in.readObject();
+//            System.out.println(vr);
+//            if (vr.getLongitude()==10.0) {
+//                System.out.println("found null");
+//                return false;
+//            }
+//            visualiseData(vr);
+//        } catch (EOFException e){
+//            try {
+//                System.out.println("sleep");
+//                sleep(1000);
+//                count++;
+//            } catch (InterruptedException e1) {
+//                e1.printStackTrace();
+//            }
+//        } catch (IOException e) {
+//            if(e.getMessage().contains("Connection reset")){
+//                System.out.println("Connection reset. Service.Broker may be down.");
+//                return false;
+//            }
+//            e.printStackTrace();
+//        } catch (ClassNotFoundException e) {
+//            e.printStackTrace();
+//        }
+//        return true;
+//    }
 
 
     public void register(Broker b, Topic t) {
@@ -83,6 +85,10 @@ public class Subscriber implements Node {
 
     public void visualiseData( Value v) {
         System.out.println("New position! " + currentLine + " is at " + v.getLatitude() + ", " + v.getLongitude());
+    }
+
+    public static void calledFromActivity(){
+        MapsActivity.calledFromSubscriber();
     }
 
     @Override
@@ -114,7 +120,7 @@ public class Subscriber implements Node {
                 if (hasKey==0) {
                     boolean bool;
                     do {
-                        bool = pull(in);
+                        bool = MapsActivity.pull(in);
                         if(count>5){
                             System.out.println("Service.Broker is down, please insert line again.");
                             count=0;
