@@ -1,4 +1,4 @@
-package com.example.buslocationapp;
+package com.example.buslocationapp.Service;
 
 import java.util.ArrayList;
 import java.util.List;
