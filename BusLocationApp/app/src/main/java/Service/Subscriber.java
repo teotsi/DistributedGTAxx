@@ -26,10 +26,12 @@ public class Subscriber implements Node {
     private InetAddress currentAddress;
     private int count=0;
     private int direction;
+    MapsActivity activity;
 
-    public Subscriber(List<Broker> brokers, InputStream stream) {
+    public Subscriber(List<Broker> brokers, InputStream stream, MapsActivity activity) {
         this.brokers.addAll(Reader.getBrokerList(stream));
         Scanner in = new Scanner(System.in);
+        this.activity=activity;
         while (true) {
 //            System.out.print("Enter bus line:");
 //            String input = in.next().trim();
@@ -58,6 +60,7 @@ public class Subscriber implements Node {
                 return false;
             }
             visualiseData(vr);
+            MapsActivity.manageMarkers(vr,activity);
         }catch(ClassCastException e){
             e.printStackTrace();
             System.out.println("Whooopsie");
