@@ -1,8 +1,6 @@
 package com.example.buslocationapp;
 
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.*;
 
@@ -88,8 +86,8 @@ public class RouteReader {
         return bRoutes;
     }
 
-    public static ArrayList<Map.Entry> getLinesAndRoutes() {
-        return linesAndRoutes;
+    public static List<Map.Entry<String, String>> getLinesAndRoutes() {
+        return routesAndIds;
     }
 }
 

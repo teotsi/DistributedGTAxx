@@ -32,6 +32,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.StringTokenizer;
 
 import Service.Bus;
 import Service.Subscriber;
@@ -47,6 +49,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     List<Routes> bRoutes;
     List<String> masterRoutes;
     List<String> routeVariants;
+    List<String> adapterList;
     private static int count=0;
     private static List<Bus> Buses=new ArrayList<>();
     MapsActivity activity=this;
@@ -70,14 +73,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             bRoutes = r.getRoutes(assets.open("RouteCodesNew.txt"),assets.open("busLinesNew.txt"));
             masterRoutes = getMasterRoutes();
-
-            masterRouteSpinner.setOnItemSelectedListener(this);
-
+            List<Map.Entry<String, String>> linesAndRoutes = RouteReader.getLinesAndRoutes();
+            adapterList=new ArrayList<>();
+            for(int i=0;i<masterRoutes.size();i++){
+                String current=masterRoutes.get(i);
+                for(Map.Entry entry: linesAndRoutes){
+                    if(current.substring(0,4).trim().equals(entry.getKey())){
+                        adapterList.add(entry.getValue()+" "+current.substring(4).trim());
+                    }
+                }
+            }
 
             ArrayAdapter<String> masterAdapter = new ArrayAdapter<>(this,
-                    android.R.layout.simple_spinner_dropdown_item, masterRoutes);
+                    android.R.layout.simple_spinner_dropdown_item, adapterList);
             masterAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             masterRouteSpinner.setAdapter(masterAdapter);
+            masterRouteSpinner.setOnItemSelectedListener(this);
 
 
             routeVariantSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -101,13 +112,46 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2, long arg3){
         String selection = masterRoutes.get(arg2);
-        Toast.makeText(MapsActivity.this, masterRoutes.get(arg2), Toast.LENGTH_SHORT).show();
+        Toast.makeText(MapsActivity.this, adapterList.get(arg2), Toast.LENGTH_SHORT).show();
         routeVariants = getSelectedRouteVariants(selection);
+        List<Map.Entry<String, String>> linesAndRoutes = RouteReader.getLinesAndRoutes();
+
+        List<String> adapterList2=new ArrayList<>();
+        for(int i=0;i<routeVariants.size();i++){
+            String current=routeVariants.get(i);
+            for(Map.Entry entry: linesAndRoutes){
+                if(current.substring(0,4).trim().equals(entry.getKey())){
+                    adapterList2.add(entry.getValue()+" "+current.substring(4).trim());
+                }
+            }
+        }
+
         ArrayAdapter<String> variantAdapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_dropdown_item, routeVariants);
+                android.R.layout.simple_spinner_dropdown_item, adapterList2);
         variantAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         routeVariantSpinner.setAdapter(variantAdapter);
-        new SubTask().execute();
+        String variantSelection = routeVariantSpinner.getSelectedItem().toString();
+        String direction="";
+        for(String route: routeVariants){
+            StringTokenizer tk = new StringTokenizer(route," ");
+            tk.nextToken();
+            String newRoute = "";
+            while(tk.hasMoreTokens()){
+                newRoute+=tk.nextToken()+" ";
+            }
+            StringTokenizer tk2 = new StringTokenizer(variantSelection," ");
+            tk2.nextToken();
+            String newVariant = "";
+            while(tk2.hasMoreTokens()){
+                newVariant+=tk2.nextToken()+" ";
+            }
+            if(newRoute.trim().equals(newVariant.trim())){
+                direction = route.substring(0,4).trim();
+            }
+        }
+        StringTokenizer tk = new StringTokenizer(adapterList.get(arg2)," ");
+
+        new SubTask().execute(tk.nextToken(),direction);
 
     }
 
@@ -160,6 +204,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         @Override
         protected Void doInBackground(String... file) {
             AssetManager s = getAssets();
+            String line = file[0];
+            String route = file[1];
             try {
                 InputStream stream = s.open("brokerIPs.txt");
                 new Subscriber(new ArrayList<>(),stream,activity);
