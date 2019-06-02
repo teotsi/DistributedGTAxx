@@ -103,6 +103,7 @@ public class BrokerRequest extends Broker implements Runnable {
                                     try {
                                         Value currentValue = v1.get(i);
                                         if(currentValue.getBus().getRouteCode().equals(route)) {
+                                            System.out.println("Sent to customer!");
                                             out.writeObject(currentValue);
                                             out.flush();
                                         }

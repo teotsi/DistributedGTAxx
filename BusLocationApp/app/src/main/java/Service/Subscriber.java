@@ -41,40 +41,42 @@ public class Subscriber implements Node {
 //            System.out.println("Start(1) or return(2)?");
 //            input = in.next().trim();
 //            direction = Integer.parseInt(input);
+            currentLine = "022";
+            direction = 1804;
             init(4321);
             connect();
             count=0;
         }
     }
 
-//    public synchronized boolean pull(ObjectInputStream in) {
-//        try {
-//            Value vr = (Value) in.readObject();
-//            System.out.println(vr);
-//            if (vr.getLongitude()==10.0) {
-//                System.out.println("found null");
-//                return false;
-//            }
-//            visualiseData(vr);
-//        } catch (EOFException e){
-//            try {
-//                System.out.println("sleep");
-//                sleep(1000);
-//                count++;
-//            } catch (InterruptedException e1) {
-//                e1.printStackTrace();
-//            }
-//        } catch (IOException e) {
-//            if(e.getMessage().contains("Connection reset")){
-//                System.out.println("Connection reset. Service.Broker may be down.");
-//                return false;
-//            }
-//            e.printStackTrace();
-//        } catch (ClassNotFoundException e) {
-//            e.printStackTrace();
-//        }
-//        return true;
-//    }
+    public synchronized boolean pull(ObjectInputStream in) {
+        try {
+            Value vr = (Value) in.readObject();
+            System.out.println(vr);
+            if (vr.getLongitude()==10.0) {
+                System.out.println("found null");
+                return false;
+            }
+            visualiseData(vr);
+        } catch (EOFException e){
+            try {
+                System.out.println("sleep");
+                sleep(1000);
+                count++;
+            } catch (InterruptedException e1) {
+                e1.printStackTrace();
+            }
+        } catch (IOException e) {
+            if(e.getMessage().contains("Connection reset")){
+                System.out.println("Connection reset. Service.Broker may be down.");
+                return false;
+            }
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return true;
+    }
 
 
     public void register(Broker b, Topic t) {
@@ -88,9 +90,6 @@ public class Subscriber implements Node {
         System.out.println("New position! " + currentLine + " is at " + v.getLatitude() + ", " + v.getLongitude());
     }
 
-    public static void calledFromActivity(){
-        MapsActivity.calledFromSubscriber();
-    }
 
     @Override
     public void init(int port) {
@@ -121,7 +120,8 @@ public class Subscriber implements Node {
                 if (hasKey==0) {
                     boolean bool;
                     do {
-                        bool = MapsActivity.pull(in);
+                        System.out.println("tried to pull");
+                        bool = pull(in);
                         if(count>5){
                             System.out.println("Service.Broker is down, please insert line again.");
                             count=0;
