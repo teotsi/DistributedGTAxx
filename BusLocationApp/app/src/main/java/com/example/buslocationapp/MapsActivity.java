@@ -53,7 +53,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static int count=0;
     private static List<Bus> Buses=new ArrayList<>();
     MapsActivity activity=this;
-
+    SubTask task=null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -111,6 +111,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2, long arg3){
+        if(task!=null){
+            task.cancel(true);
+        }
         String selection = masterRoutes.get(arg2);
         Toast.makeText(MapsActivity.this, adapterList.get(arg2), Toast.LENGTH_SHORT).show();
         routeVariants = getSelectedRouteVariants(selection);
@@ -151,8 +154,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
         StringTokenizer tk = new StringTokenizer(adapterList.get(arg2)," ");
 
-        new SubTask().execute(tk.nextToken(),direction);
-
+        task = (SubTask) new SubTask().execute(tk.nextToken(),direction);
     }
 
 
