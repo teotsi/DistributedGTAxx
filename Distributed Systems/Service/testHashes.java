@@ -1,4 +1,4 @@
-package com.example.buslocationapp.Service;
+package Service;
 
 import java.math.BigInteger;
 import java.security.MessageDigest;

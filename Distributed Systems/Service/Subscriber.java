@@ -1,4 +1,4 @@
-package com.example.buslocationapp.Service;
+package Service;
 
 import java.io.EOFException;
 import java.io.IOException;
