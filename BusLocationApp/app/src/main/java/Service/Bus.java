@@ -5,7 +5,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import java.io.Serializable;
 
 public class Bus implements Serializable {
-
+    private static final long serialVersionUID = 6529685098267757690L;
     private String lineNumber;
     private String routeCode;
     private String vehicleId;

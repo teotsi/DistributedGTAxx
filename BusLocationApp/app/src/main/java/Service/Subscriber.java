@@ -58,6 +58,9 @@ public class Subscriber implements Node {
                 return false;
             }
             visualiseData(vr);
+        }catch(ClassCastException e){
+            e.printStackTrace();
+            System.out.println("Whooopsie");
         } catch (EOFException e){
             try {
                 System.out.println("sleep");
