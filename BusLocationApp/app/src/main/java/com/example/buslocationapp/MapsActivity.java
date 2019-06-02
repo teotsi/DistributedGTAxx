@@ -68,7 +68,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             masterRouteSpinner = (Spinner)findViewById(R.id.MasterRouteSpinner);
             routeVariantSpinner = (Spinner)findViewById(R.id.RouteVariantSpinner);
 
-            bRoutes = r.getRoutes(assets.open("RouteCodesNew.txt"));
+            bRoutes = r.getRoutes(assets.open("RouteCodesNew.txt"),assets.open("busLinesNew.txt"));
             masterRoutes = getMasterRoutes();
 
             masterRouteSpinner.setOnItemSelectedListener(this);

@@ -134,7 +134,7 @@ public class Reader {
         return busCount < totalBusLines;
     }
 
-    private static List<String> getFileLines(String fileName) {
+    public static List<String> getFileLines(String fileName) {
         List<String> fileLines = new ArrayList<>();
         try {
             Scanner input = new Scanner(new File(PATH+fileName));
@@ -147,7 +147,7 @@ public class Reader {
         }
         return fileLines;
     }
-    private static List<String> getFileLines(InputStream fileName) {
+    public static List<String> getFileLines(InputStream fileName) {
         List<String> fileLines = new ArrayList<>();
         Scanner input = new Scanner(fileName);
         while (input.hasNext()) {
