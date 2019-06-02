@@ -112,7 +112,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2, long arg3){
         if(task!=null){
+            System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@");
             task.cancel(true);
+            task=null;
         }
         String selection = masterRoutes.get(arg2);
         Toast.makeText(MapsActivity.this, adapterList.get(arg2), Toast.LENGTH_SHORT).show();
@@ -210,7 +212,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             String route = file[1];
             try {
                 InputStream stream = s.open("brokerIPs.txt");
-                new Subscriber(new ArrayList<>(),stream,activity);
+                new Subscriber(new ArrayList<>(),stream,activity, line, route);
+                while(true){
+                    if(isCancelled()){
+                        Subscriber.flag=true;
+                    }
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -236,20 +243,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     Buses.get(Buses.indexOf(vr.getBus())).setMarker(mMap.addMarker(markerOptions));
                 }
             });
-            //mMap.addMarker(Buses.get(Buses.indexOf(vr.getBus())).getMarker());
-            //animateMarker(Buses.get(Buses.indexOf(vr.getBus())).getMarker(), new LatLng(vr.getLatitude(), vr.getLongitude()), true, activity);
         } else {
             Buses.add(vr.getBus());
-//            Marker marker;
-//            marker=mMap.addMarker(new MarkerOptions().position(new LatLng(vr.getLatitude(), vr.getLongitude())));
-//            Buses.get(Buses.size() - 1).setMarker(marker);
+//
             activity.runOnUiThread(new Runnable(){
                 public void run(){
                     Marker marker;
                     marker=mMap.addMarker(new MarkerOptions().position(new LatLng(vr.getLatitude(), vr.getLongitude())));
                     Buses.get(Buses.size() - 1).setMarker(marker);
                     Buses.get(Buses.size() - 1).getMarker().setIcon(BitmapDescriptorFactory.fromResource(R.drawable.bus_icon));
-                    System.out.println("added first mark111111111111111111111");
                 }
             });
 
@@ -257,51 +259,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-        public static void animateMarker (final MarkerOptions marker, final LatLng toPosition, final boolean hideMarker, MapsActivity activity){
-            System.out.println("In the animate!!!!!!!!!!!!");
-            activity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    System.out.println("In the UIthread--------------");
-                    final Handler handler = new Handler();
-                    final long start = SystemClock.uptimeMillis();
-                    Projection proj = mMap.getProjection();
-                    Point startPoint = proj.toScreenLocation(marker.getPosition());
-                    final LatLng startLatLng = proj.fromScreenLocation(startPoint);
-                    final long duration = 500;
 
-                    final Interpolator interpolator = new LinearInterpolator();
-
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            System.out.println("In the post+++++++++++++++++++");
-                            long elapsed = SystemClock.uptimeMillis() - start;
-                            float t = interpolator.getInterpolation((float) elapsed
-                                    / duration);
-                            double lng = t * toPosition.longitude + (1 - t)
-                                    * startLatLng.longitude;
-                            double lat = t * toPosition.latitude + (1 - t)
-                                    * startLatLng.latitude;
-                            marker.position(new LatLng(lat, lng));
-
-                            if (t < 1.0) {
-                                // Post again 16ms later.
-                                handler.postDelayed(this, 16);
-                            } else {
-                                if (hideMarker) {
-                                    marker.visible(false);
-                                } else {
-                                    marker.visible(true);
-                                }
-                            }
-                        }
-                    });
-                }
-            });
-            //final Handler handler = new Handler();
-
-        }
 
 
 }

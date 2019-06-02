@@ -25,10 +25,12 @@ public class Subscriber implements Node {
     private List<Map.Entry<String, List<String>>> AllKeys;// contains all the ips and their keys
     private InetAddress currentAddress;
     private int count=0;
-    private int direction;
+    private String direction;
+    private String currentline;
     MapsActivity activity;
+    public static boolean flag=false;
 
-    public Subscriber(List<Broker> brokers, InputStream stream, MapsActivity activity) {
+    public Subscriber(List<Broker> brokers, InputStream stream, MapsActivity activity, String line, String direction) {
         this.brokers.addAll(Reader.getBrokerList(stream));
         Scanner in = new Scanner(System.in);
         this.activity=activity;
@@ -43,8 +45,8 @@ public class Subscriber implements Node {
 //            System.out.println("Start(1) or return(2)?");
 //            input = in.next().trim();
 //            direction = Integer.parseInt(input);
-            currentLine = "022";
-            direction = 1804;
+            this.currentLine = line;
+            this.direction = direction;
             init(4321);
             connect();
             count=0;
@@ -57,6 +59,11 @@ public class Subscriber implements Node {
             System.out.println(vr);
             if (vr.getLongitude()==10.0) {
                 System.out.println("found null");
+                return false;
+            }
+            if(flag){
+                flag=false;
+                Thread.currentThread().interrupt();
                 return false;
             }
             visualiseData(vr);
@@ -119,7 +126,8 @@ public class Subscriber implements Node {
                 sleep(1000);
                 in = new ObjectInputStream(socket.getInputStream());
                 out = new ObjectOutputStream(socket.getOutputStream());
-                out.writeObject("022,1804"); //asking broker for list + if he's responsible for this key
+                String unite= currentLine+","+direction;
+                out.writeObject(unite); //asking broker for list + if he's responsible for this key
                 out.flush();
                 AllKeys = (List<Map.Entry<String, List<String>>>) in.readObject();//reading the message of the broker saying if his is the correct one
                 int hasKey = (int) in.readObject();

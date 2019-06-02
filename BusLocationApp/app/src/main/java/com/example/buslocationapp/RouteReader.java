@@ -8,12 +8,11 @@ import Service.Reader;
 
 public class RouteReader {
 
-    public static Routes busRoutes;
     public static List<String> filelines = new ArrayList<>();
-    public static List<String> routeList = new ArrayList<>();
+    public static List<String> routeList = new ArrayList<>();// A list with routecode and description.
     public static List<String> officialRouteList = new ArrayList<>();
-    private static List<Map.Entry<String, String>> routesAndIds = new ArrayList<>();
-    private static ArrayList<Map.Entry> linesAndRoutes = new ArrayList<>();
+    private static List<Map.Entry<String, String>> routesAndIds = new ArrayList<>();// We have a pair of direction code(2484) and 1151
+    private static ArrayList<Map.Entry> linesAndRoutes = new ArrayList<>(); // We a pair of 1151, 021
     public final static String FILENAME = "RouteCodesNew.txt";
 
     public static int counter = 0;
@@ -32,7 +31,7 @@ public class RouteReader {
             for(String f_line: filelines){
                 StringTokenizer st;
                 st = new StringTokenizer(f_line,",");
-                String routeCode = st.nextToken();
+                String routeCode = st.nextToken();// direction code(2484)
                 routesAndIds.add(new AbstractMap.SimpleEntry<String, String>(routeCode,st.nextToken()));
                 st.nextToken();
                 routeList.add(routeCode+" "+st.nextToken());
@@ -75,6 +74,7 @@ public class RouteReader {
             }
 
             for(int i = 0; i < bRoutes.size(); i++){
+                System.out.println("bRoute------------------------------------------------");
                 System.out.println(bRoutes.get(i).toString());
             }
 
